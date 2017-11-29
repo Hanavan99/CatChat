@@ -1,10 +1,13 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.text.*;
+import java.util.*;
 
 public class Gui extends JFrame{
 	private JTextField userText;
 	private JTextArea chatWindow;
+	private JButton b;
 	private String message;
 	private String handle;
 	private String oldHandle;
@@ -14,7 +17,7 @@ public class Gui extends JFrame{
 	public Gui(){
 		font1 = new Font("SansSerif", Font.BOLD, 15);
 		
-		userText = new JTextField();
+		userText = new JTextField("Type here...");
 		userText.setEditable(true); //Needs to be changed to false
 		userText.addActionListener(
 			new ActionListener(){
@@ -27,33 +30,25 @@ public class Gui extends JFrame{
 		add(userText, BorderLayout.SOUTH);
 		userText.setFont(font1);
 		
-		chatWindow = new JTextArea();
+		chatWindow = new JTextArea("Welcome to Cat Chat");
 		add(new JScrollPane(chatWindow), BorderLayout.CENTER);
 		setSize(700,700);
 		setVisible(true);
 		chatWindow.setEditable(false);
-		this.setTitle("Chat Client");
+		this.setTitle("Cat Chat");
 		chatWindow.setFont(font1);
 		
+		b = new JButton("Files");
+		add(b, BorderLayout.EAST);
+		
 		userText.requestFocusInWindow();
+		userText.selectAll();
 		
 		handle = "Chuck"; //JOptionPane.showInputDialog("Enter your desired handle: ");
 		
 		commands = new String[2];
 		commands[0] = "/dance";
 		commands[1] = "/handle";
-	}
-	
-	public String sendMessage(String message, boolean normal){
-		if(normal){
-			message = "\n"+handle+" - "+message;
-			showMessage(message);
-			return message;
-		}
-		else{
-			showMessage(message);
-			return (message);
-		}
 	}
 	
 	public void showMessage(final String TEXT){
@@ -73,15 +68,18 @@ public class Gui extends JFrame{
 		else if(pieces[0].equals("/handle")){
 			oldHandle = handle;
 			handle = message.substring(8);
-			sendMessage("\n"+oldHandle+" has changed their handle to "+handle, false);
+			message = ("\n"+oldHandle+" has changed their handle to "+handle);
+			showMessage(message);
 		}
 		else if(pieces[0].equals("/help")){
 			showMessage("\nCommands: ");
 			for(int i = 0; i < commands.length; i++)
 				showMessage("\n"+commands[i]);
 		}
-		else
-			sendMessage(message, true);
+		else{
+			message = "\n"+getTime()+" "+handle+" - "+message;
+			showMessage(message);
+		}
 	}
 	
 	private void ableToType(final Boolean TOF){
@@ -93,4 +91,10 @@ public class Gui extends JFrame{
 			}
 		);
 	}
+	
+	private String getTime(){
+        Calendar cal = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+        return (sdf.format(cal.getTime()));
+    }
 }
