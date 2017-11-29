@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,7 +13,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Scanner;
 
 import catchat.client.SerializableFile;
 
@@ -63,7 +61,7 @@ public class Server {
 						Entry<String, String> entry = itr.next();
 						for (Client c : clients) {
 							try {
-							c.sendMessage(entry.getKey() + ": " + entry.getValue());
+								c.sendMessage(entry.getKey() + ": " + entry.getValue());
 							} catch (Exception ex) {
 								System.out.println("Failed to send message to client");
 							}
@@ -145,12 +143,19 @@ public class Server {
 		}
 		if (result != null) {
 			try {
+				// TODO load file into class
 				return new SerializableFile(result.getName(), null);
 			} catch (Exception e) {
 				System.out.println("Failed to create a SerializableFile");
 			}
 		}
 		return null;
+	}
+	
+	public void printClients() {
+		for (Client c : clients) {
+			System.out.println(c.getUsername());
+		}
 	}
 
 }

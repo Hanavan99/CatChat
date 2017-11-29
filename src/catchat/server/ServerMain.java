@@ -16,10 +16,15 @@ public class ServerMain {
 			command = in.nextLine();
 			switch (command) {
 			case "/exit":
+			case "/quit":
 				System.out.println("Closing server");
 				s.stop();
 				in.close();
 				return;
+			case "/list":
+				System.out.println("Current clients:");
+				s.printClients();
+				break;
 			default:
 				System.out.println("Invalid command");
 				break;
