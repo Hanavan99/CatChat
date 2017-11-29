@@ -44,7 +44,7 @@ public class Gui extends JFrame{
 		userText.requestFocusInWindow();
 		userText.selectAll();
 		
-		handle = "Chuck"; //JOptionPane.showInputDialog("Enter your desired handle: ");
+		handle = JOptionPane.showInputDialog("Enter your desired handle: ");
 		
 		commands = new String[2];
 		commands[0] = "/dance";
