@@ -1,11 +1,22 @@
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.text.*;
-import java.util.*;
-import catchat.server.*;
-import java.io.*;
-import java.net.*;
+package catchat.client;
+
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 public class Gui extends JFrame{
 	private JTextField userText;
