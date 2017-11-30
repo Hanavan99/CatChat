@@ -12,10 +12,10 @@ public class Client {
 	private ObjectOutputStream oout;
 	private String username;
 
-	public Client(ObjectInputStream oin, ObjectOutputStream oout) throws IOException {
+	public Client(ObjectInputStream oin, ObjectOutputStream oout, String user) throws IOException {
 		this.oin = oin;
 		this.oout = oout;
-		username = oin.readUTF();
+		username = user;
 	}
 
 	public boolean connected() {

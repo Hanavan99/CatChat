@@ -32,8 +32,6 @@ public class Gui extends JFrame {
 	private JButton downloadFileButton;
 	private String message;
 	private String handle;
-	private String oldHandle;
-	private String[] commands;
 	private Font font1;
 	private Socket connection;
 	private ObjectOutputStream output;
@@ -61,7 +59,7 @@ public class Gui extends JFrame {
 		chatWindow.setEditable(false);
 		this.setTitle("Cat Chat");
 		chatWindow.setFont(font1);
-
+/*
 		fileChooseButton = new JButton("Files");
 		add(fileChooseButton, BorderLayout.SOUTH);
 		fileChooseButton.addActionListener(new ActionListener() {
@@ -76,7 +74,7 @@ public class Gui extends JFrame {
 				client.sendFile(file);
 			}
 		});
-
+*/
 		userText.requestFocusInWindow();
 		userText.selectAll();
 
@@ -100,14 +98,15 @@ public class Gui extends JFrame {
 	}
 
 	private void connectToServer() throws IOException {
-		connection = new Socket("127.0.0.1", 12345);
+		connection = new Socket("10.132.22.105", 12345);
 	}
 
 	private void setUpStreams() throws IOException {
 		output = new ObjectOutputStream(connection.getOutputStream());
 		output.flush();
 		input = new ObjectInputStream(connection.getInputStream());
-		client = new Client(input, output);
+		client = new Client(input, output, handle);
+		System.out.println(client);
 
 	}
 
