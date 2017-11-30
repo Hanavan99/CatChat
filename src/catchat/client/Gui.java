@@ -1,16 +1,17 @@
+package catchat.server;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.*;
 import java.util.*;
-import catchat.server.*;
 import java.io.*;
 import java.net.*;
 
 public class Gui extends JFrame{
 	private JTextField userText;
 	private JTextArea chatWindow;
-	private JButton b;
+	private JButton fileChooseButton;
+	private JButton downloadFileButton;
 	private String message;
 	private String handle;
 	private String oldHandle;
@@ -24,11 +25,11 @@ public class Gui extends JFrame{
 		font1 = new Font("SansSerif", Font.BOLD, 15);
 		
 		userText = new JTextField("Type here...");
-		userText.setEditable(true); //Needs to be changed to false
+		userText.setEditable(false);
 		userText.addActionListener(
 			new ActionListener(){
 				public void actionPerformed(ActionEvent event){
-					checkMessage(event.getActionCommand());
+					sendMessage(event.getActionCommand());
 					userText.setText("");
 				}
 			}
@@ -44,17 +45,78 @@ public class Gui extends JFrame{
 		this.setTitle("Cat Chat");
 		chatWindow.setFont(font1);
 		
-		b = new JButton("Files");
-		add(b, BorderLayout.EAST);
+		fileChooseButton = new JButton("Files");
+		add(b, BorderLayout.SOUTH);
+		fileChooseButton.addActionListener( new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				JFileChooser chooser= new JFileChooser();
+				int choice = choose.showOpenDialog();
+				if (choice != JFileChooser.APPROVE_OPTION) return;
+				File chosenFile = chooser.getSelectedFile();
+				
+				SerializableFile file = new SerializableFile(chosenFile);
+				sendFile(file);
+			}
+		});
 		
 		userText.requestFocusInWindow();
 		userText.selectAll();
 		
-		handle = "Chuck"; //JOptionPane.showInputDialog("Enter your desired handle: ");
+		handle = JOptionPane.showInputDialog("Enter your desired handle: ");
+
+		startRunning();
+	}
+	
+	public void startRunning(){
+		try
+		{
+			connectToServer();
+			setUpStreams();
+			whileChatting();
+		}
+		catch(EOFException eofException)
+		{
+			showMessage("\nClient terminated connection");
+		}
+		catch(IOException ioException)
+		{
+			ioException.printStackTrace();
+		}
+		finally
+		{
+			close();
+		}
+	}
+	
+	private void connectToServer() throws IOException{
+		connection = new Socket("127.0.0.1" , 12345);
+	}
+	
+	private void setUpStreams() throws IOException{
+		output = new ObjectOutputStream(connection.getOutputStream());
+		output.flush();
+		input = new ObjectInputStream(connection.getInputStream());
+		Client c = new Client(input, output);
 		
-		commands = new String[2];
-		commands[0] = "/dance";
-		commands[1] = "/handle";
+	}
+	
+	public void whileChatting() throws IOException{
+		ableToType(true);
+		do{
+				message = (String)c.getMessage();
+				showMessage("\n" + message);
+			
+		}while(!message.equals("/exit"));
+	}
+	
+	private void sendMessage(String message)
+	{
+		try{
+			c.sendMessage(message);
+		}
+		catch(IOException ioException){
+			chatWindow.append("\nMessage could not be sent!");
+		}
 	}
 	
 	public void showMessage(final String TEXT){
@@ -67,27 +129,6 @@ public class Gui extends JFrame{
 		);
 	}
 	
-	private void checkMessage(String message){
-		String [] pieces = message.split(" ");
-		if(pieces[0].equals("/dance"))
-			showMessage("\nYour internet persona does a little dance.");
-		else if(pieces[0].equals("/handle")){
-			oldHandle = handle;
-			handle = message.substring(8);
-			message = ("\n"+oldHandle+" has changed their handle to "+handle);
-			showMessage(message);
-		}
-		else if(pieces[0].equals("/help")){
-			showMessage("\nCommands: ");
-			for(int i = 0; i < commands.length; i++)
-				showMessage("\n"+commands[i]);
-		}
-		else{
-			message = "\n"+getTime()+" "+handle+" - "+message;
-			showMessage(message);
-		}
-	}
-	
 	private void ableToType(final Boolean TOF){
 		SwingUtilities.invokeLater(
 			new Runnable(){
@@ -98,20 +139,18 @@ public class Gui extends JFrame{
 		);
 	}
 	
-	private String getTime(){
-        Calendar cal = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-        return (sdf.format(cal.getTime()));
-    }
-	
-	private void connectToServer() throws IOException{
-		connection = new Socket("127.0.0.1" , 12345);
-	}
-	
-	private void setUpStreams() throws IOException{
-		output = new ObjectOutputStream(connection.getOutputStream());
-		output.flush();
-		input = new ObjectInputStream(connection.getInputStream());
+	private void close()
+	{
+		showMessage("\nClsoing streams and sockets.");
+		ableToType(false);
+		try
+		{
+			connection.close();
+		}
+		catch(IOException ioException)
+		{
+			ioException.printStackTrace();
+		}
 		
 	}
 }
