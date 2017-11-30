@@ -2,6 +2,7 @@ package catchat.client;
 import java.util.*;
 import java.io.*;
 import java.net.*;
+import javax.swing.*;
 //passed filename, byteArray of contents, stroe byteArray
 // intenal methods to write file to path
 //private read file
@@ -10,28 +11,23 @@ import java.net.*;
 public class SerializableFile implements Serializable
 {
 	
-	public OutputStream outStream;
-	public InputStream inStream;
-	public FileOutputStream fileOutStream;
-	public FileInputStream f_inStream;
-	public String fileName;
-	public File testFile;
+	private String fileName;
+	private byte[] byteArray;
 
 
-	public SerializableFile(String inFileName) throws FileNotFoundException, IOException
+	public SerializableFile(File inFile) throws FileNotFoundException, IOException
 	{
-		fileName = inFileName;
-		File testFile = new File("." + File.pathSeparator  +inFileName);
-		//inStream = inSocket.getInputStream();
+		fileName = inFile.getName();
+		InputStream inStream = new FileInputStream(inFile);
 		//ObjectInputStream s = new ObjectInputStream(inStream);
+		byteArray = new byte[(int)inFile.getTotalSpace()];
+		inStream.read(byteArray,0, byteArray.length);
+		inStream.close();
+
 		
 	}
-	public SerializableFile(File inFile)
-	{
-		testFile = inFile;
-
-	}
-	public static File deSerialize(byte[] inByteArray) throws IOException
+	
+	private File deSerialize(byte[] inByteArray) throws IOException
 	{
 		//String temp = Base64.encodeBase64String(inByteArray);
 		String temp = new String(inByteArray);
@@ -44,54 +40,25 @@ public class SerializableFile implements Serializable
 
 		return new File("testfile.txt");
 	}
-	public static byte[] serialize(File inFile) throws FileNotFoundException, IOException
+	public void saveFile() throws FileNotFoundException, IOException
 	{
-		ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
-		StringBuilder sb = new StringBuilder();
-		Scanner s = new Scanner(inFile);
-		while(s.hasNext())
+		File inFile = new File(fileName);
+		OutputStream outStream = new FileOutputStream(inFile);
+		Scanner f = new Scanner(inFile);
+		if (inFile.exists())
 		{
-			sb.append(s.nextLine());
-
+			//System.out.println("It seems that the file " + inFile.toString() + "exists. Do you want to overwrite? Y or N");
+			int result = JOptionPane.showConfirmDialog(null,"It seems that the file " + inFile.toString() + "exists. Do you want to overwrite?");
+			if(result == 1)
+			{
+				//PrintWriter pw = new PrintWriter(inFile);
+				outStream.write(byteArray);
+			}
 		}
-		String contents = sb.toString();
-		ObjectOutputStream out = new ObjectOutputStream(byteOutStream);
-		byte[] byteArray = contents.getBytes();
-		return byteArray;
-		// try
-		// {
-		// 	out.writeObject(inFile);
-		// 	out.flush();
-
-		// 	byteArray = byteOutStream.toByteArray();
-		// 	out.close();
-			
-		// }
-		// catch (Exception e)
-		// {
-		// 	System.out.println("An error occurred serializing the object");
-		// 	out.close();
-		// 	return new byte[0];
-		// }
-		// return byteArray;
-
+		else
+		{
+			outStream.write(byteArray);
+		}
+		outStream.close();
 	}
-	// public static void saveFile(File inFile) throws FileNotFoundException
-	// {
-	// 	Scanner s = new Scanner(System.in);
-	// 	Scanner f = new Scanner(inFile);
-	// 	if (inFile.exists())
-	// 	{
-	// 		System.out.println("It seems that the file " + inFile.toString() + "exists. Do you want to overwrite? Y or N");
-	// 		if(s.nextLine().equals("Y"))
-	// 		{
-	// 			PrintWriter pw = new PrintWriter(inFile);
-	// 			while (f.hasNext())
-	// 			{
-	// 				pw.println(f.nextLine());
-	// 			}
-	// 		}
-	// 	}
-	// }
-
 }

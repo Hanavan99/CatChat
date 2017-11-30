@@ -6,11 +6,11 @@ import java.util.Scanner;
 public class ServerMain {
 
 	public static void main(String[] args) throws IOException {
-		Server s = new Server("127.0.0.1", 12345);
+		Server s = new Server("10.131.214.3", 12345);
 		s.start();
 
 		Scanner in = new Scanner(System.in);
-		System.out.println("Server Started. Enter commands below.");
+		System.out.println("Server Started. Type '/help' for help.");
 		String command;
 		while (in.hasNext()) {
 			command = in.nextLine();
@@ -24,6 +24,9 @@ public class ServerMain {
 			case "/list":
 				System.out.println("Current clients:");
 				s.printClients();
+				break;
+			case "/help":
+				System.out.println("Commands are: /exit, /quit, /list, /help");
 				break;
 			default:
 				System.out.println("Invalid command");

@@ -59,13 +59,13 @@ public class Server {
 				try {
 					Thread.sleep(Long.MAX_VALUE);
 				} catch (InterruptedException e) {
-					//System.out.println("Thread interrupted");
+					// System.out.println("Thread interrupted");
 					Iterator<Entry<String, String>> itr = messageQueue.entrySet().iterator();
 					while (itr.hasNext()) {
 						Entry<String, String> entry = itr.next();
 						for (Client c : clients) {
 							try {
-								//System.out.println("Sending message to " + c.getUsername());
+								// System.out.println("Sending message to " + c.getUsername());
 								c.sendRaw(entry.getKey() + ": " + entry.getValue());
 							} catch (Exception ex) {
 								System.out.println("Failed to send message to client");
@@ -90,24 +90,26 @@ public class Server {
 			ObjectInputStream oin = new ObjectInputStream(client.getInputStream());
 			ObjectOutputStream oout = new ObjectOutputStream(client.getOutputStream());
 			Client c = new Client(oin, oout, null);
-			System.out.println("Client authenticated correctly");
 			clients.add(c);
 			while (c.connected()) {
 				String line = c.getMessage();
 				switch (line) {
 				case "message":
-					//System.out.println("Recieved message from " + c.getUsername() + ": " + c.getMessage());
+					// System.out.println("Recieved message from " + c.getUsername() + ": " +
+					// c.getMessage());
 					messageQueue.put(c.getUsername(), c.getMessage());
 					chatThread.interrupt();
 					break;
-				case "putfile":
-					//byte[] byteArray = SerializableFile.toBytes(readFile(oin));
-					
-					// TODO write the file to disk for reading later
-					break;
 				case "getfile":
+					c.sendFile(new SerializableFile(new File(c.getMessage())));
+					break;
+				case "putfile":
 					String filename = c.getMessage();
-					oout.writeObject(getFileFromDisk(filename));
+					SerializableFile file = c.getFile(c.getMessage());
+					file.saveFile();
+					break;
+				case "listfiles":
+					c.sendFileNames(getFileNames());
 					break;
 				}
 			}
@@ -131,7 +133,7 @@ public class Server {
 
 	private File readFile(ObjectInputStream oin) {
 		try {
-			File f = (File)oin.readObject();
+			File f = (File) oin.readObject();
 			return f;
 		} catch (Exception e) {
 			System.out.println("Error reading file");
@@ -139,31 +141,19 @@ public class Server {
 		}
 	}
 
-	private byte[] getFileFromDisk(String name) {
-		File result = null;
-		for (File f : new File(FILE_PATH).listFiles()) {
-			if (!f.isDirectory()) {
-				if (f.getName().equals(name)) {
-					result = f;
-					break;
-				}
-			}
-		}
-		if (result != null) {
-			try {
-				// TODO load file into class
-				//return SerializableFile.toBytes(result);
-			} catch (Exception e) {
-				System.out.println("Failed to create a SerializableFile");
-			}
-		}
-		return null;
-	}
-	
 	public void printClients() {
 		for (Client c : clients) {
 			System.out.println(c.getUsername());
 		}
+	}
+	
+	public String[] getFileNames() {
+		File[] files = new File(FILE_PATH).listFiles();
+		String[] fileNames = new String[files.length];
+		for (int i = 0; i < fileNames.length; i++) {
+			fileNames[i] = files[i].getName();
+		}
+		return fileNames;
 	}
 
 }

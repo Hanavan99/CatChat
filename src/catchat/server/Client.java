@@ -3,6 +3,8 @@ package catchat.server;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import catchat.client.SerializableFile;
 
@@ -34,23 +36,36 @@ public class Client {
 	public String getMessage() throws IOException {
 		try {
 			String s = (String) oin.readObject();
-			//System.out.println("Recieved message: " + s);
+			// System.out.println("Recieved message: " + s);
 			return s;
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
-	
+
 	public void sendRaw(String raw) throws IOException {
 		oout.writeObject(raw);
 	}
 
 	public void sendMessage(String message) throws IOException {
 		// out.println("message\n" + message);
-		//System.out.println("Sending message: " + message);
-		oout.writeObject("message");
-		oout.writeObject(message);
+		// System.out.println("Sending message: " + message);
+		sendRaw("message");
+		sendRaw(message);
+	}
+	
+	public void sendFileNames(String[] files) throws IOException {
+		oout.writeObject(files);
+	}
+
+	public String[] getFileNames() throws IOException {
+		try {
+			return (String[]) oin.readObject();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	public void sendFile(SerializableFile file) {
