@@ -100,11 +100,7 @@ public class Gui extends JFrame {
 	}
 
 	private void connectToServer() throws IOException {
-<<<<<<< HEAD
 		connection = new Socket(/*"10.132.22.105"*/"localhost", 12345);
-=======
-		connection = new Socket("localhost", 12345); //127.0.0.1 104.236.244.255
->>>>>>> branch 'master' of https://github.com/Hanavan99/CatChat.git
 	}
 
 	private void setUpStreams() throws IOException {
