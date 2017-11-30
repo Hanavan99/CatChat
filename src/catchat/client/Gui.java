@@ -98,7 +98,7 @@ public class Gui extends JFrame {
 	}
 
 	private void connectToServer() throws IOException {
-		connection = new Socket("10.132.22.105", 12345);
+		connection = new Socket(/*"10.132.22.105"*/"localhost", 12345);
 	}
 
 	private void setUpStreams() throws IOException {
@@ -120,6 +120,7 @@ public class Gui extends JFrame {
 	}
 
 	private void sendMessage(String message) {
+		System.out.println("Client sending message");
 		try {
 			client.sendMessage(message);
 		} catch (IOException ioException) {
