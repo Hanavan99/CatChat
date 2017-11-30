@@ -1,4 +1,4 @@
-package catchat.server;
+//package catchat.server;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import catchat.client.SerializableFile;
+//import catchat.client.SerializableFile;
 
 public class Server {
 
@@ -94,7 +94,8 @@ public class Server {
 					chatThread.interrupt();
 					break;
 				case "putfile":
-					SerializableFile f = readFile(oin);
+					byte[] byteArray = SerializableFile.toBytes(readFile(oin));
+					
 					// TODO write the file to disk for reading later
 					break;
 				case "getfile":
@@ -121,17 +122,17 @@ public class Server {
 		chatThread.interrupt();
 	}
 
-	private SerializableFile readFile(ObjectInputStream oin) {
+	private File readFile(ObjectInputStream oin) {
 		try {
-			Object o = oin.readObject();
-			return (SerializableFile) o;
+			File f = (File)oin.readObject();
+			return f;
 		} catch (Exception e) {
 			System.out.println("Error reading file");
 			return null;
 		}
 	}
 
-	private SerializableFile getFileFromDisk(String name) {
+	private byte[] getFileFromDisk(String name) {
 		File result = null;
 		for (File f : new File(FILE_PATH).listFiles()) {
 			if (!f.isDirectory()) {
@@ -144,7 +145,7 @@ public class Server {
 		if (result != null) {
 			try {
 				// TODO load file into class
-				return new SerializableFile(result.getName(), null);
+				return SerializableFile.toBytes(result);
 			} catch (Exception e) {
 				System.out.println("Failed to create a SerializableFile");
 			}
