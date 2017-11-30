@@ -4,125 +4,154 @@ import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
-public class Gui extends JFrame{
+import catchat.server.Client;
+
+public class Gui extends JFrame {
+
+	private static final long serialVersionUID = -6669011692663466124L;
+
 	private JTextField userText;
 	private JTextArea chatWindow;
-	private JButton b;
+	private JButton fileChooseButton;
+	private JButton downloadFileButton;
 	private String message;
 	private String handle;
 	private String oldHandle;
-	private String [] commands;
+	private String[] commands;
 	private Font font1;
 	private Socket connection;
 	private ObjectOutputStream output;
 	private ObjectInputStream input;
-	
-	public Gui(){
+	private Client client;
+
+	public Gui() {
 		font1 = new Font("SansSerif", Font.BOLD, 15);
-		
+
 		userText = new JTextField("Type here...");
-		userText.setEditable(true); //Needs to be changed to false
-		userText.addActionListener(
-			new ActionListener(){
-				public void actionPerformed(ActionEvent event){
-					checkMessage(event.getActionCommand());
-					userText.setText("");
-				}
+		userText.setEditable(false);
+		userText.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				sendMessage(event.getActionCommand());
+				userText.setText("");
 			}
-		);
+		});
 		add(userText, BorderLayout.SOUTH);
 		userText.setFont(font1);
-		
+
 		chatWindow = new JTextArea("Welcome to Cat Chat");
 		add(new JScrollPane(chatWindow), BorderLayout.CENTER);
-		setSize(700,700);
+		setSize(700, 700);
 		setVisible(true);
 		chatWindow.setEditable(false);
 		this.setTitle("Cat Chat");
 		chatWindow.setFont(font1);
-		
-		b = new JButton("Files");
-		add(b, BorderLayout.EAST);
-		
+
+		fileChooseButton = new JButton("Files");
+		add(fileChooseButton, BorderLayout.SOUTH);
+		fileChooseButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser();
+				int choice = chooser.showOpenDialog(Gui.this);
+				if (choice != JFileChooser.APPROVE_OPTION)
+					return;
+				File chosenFile = chooser.getSelectedFile();
+
+				SerializableFile file = new SerializableFile(chosenFile);
+				client.sendFile(file);
+			}
+		});
+
 		userText.requestFocusInWindow();
 		userText.selectAll();
-		
-		handle = "Chuck"; //JOptionPane.showInputDialog("Enter your desired handle: ");
-		
-		commands = new String[2];
-		commands[0] = "/dance";
-		commands[1] = "/handle";
+
+		handle = JOptionPane.showInputDialog("Enter your desired handle: ");
+
+		startRunning();
 	}
-	
-	public void showMessage(final String TEXT){
-		SwingUtilities.invokeLater(
-			new Runnable(){
-				public void run(){
-					chatWindow.append(TEXT);
-				}
-			}
-		);
-	}
-	
-	private void checkMessage(String message){
-		String [] pieces = message.split(" ");
-		if(pieces[0].equals("/dance"))
-			showMessage("\nYour internet persona does a little dance.");
-		else if(pieces[0].equals("/handle")){
-			oldHandle = handle;
-			handle = message.substring(8);
-			message = ("\n"+oldHandle+" has changed their handle to "+handle);
-			showMessage(message);
-		}
-		else if(pieces[0].equals("/help")){
-			showMessage("\nCommands: ");
-			for(int i = 0; i < commands.length; i++)
-				showMessage("\n"+commands[i]);
-		}
-		else{
-			message = "\n"+getTime()+" "+handle+" - "+message;
-			showMessage(message);
+
+	public void startRunning() {
+		try {
+			connectToServer();
+			setUpStreams();
+			whileChatting();
+		} catch (EOFException eofException) {
+			showMessage("\nClient terminated connection");
+		} catch (IOException ioException) {
+			ioException.printStackTrace();
+		} finally {
+			close();
 		}
 	}
-	
-	private void ableToType(final Boolean TOF){
-		SwingUtilities.invokeLater(
-			new Runnable(){
-				public void run(){
-					userText.setEditable(TOF);
-				}
-			}
-		);
+
+	private void connectToServer() throws IOException {
+		connection = new Socket("127.0.0.1", 12345);
 	}
-	
-	private String getTime(){
-        Calendar cal = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-        return (sdf.format(cal.getTime()));
-    }
-	
-	private void connectToServer() throws IOException{
-		connection = new Socket("127.0.0.1" , 12345);
-	}
-	
-	private void setUpStreams() throws IOException{
+
+	private void setUpStreams() throws IOException {
 		output = new ObjectOutputStream(connection.getOutputStream());
 		output.flush();
 		input = new ObjectInputStream(connection.getInputStream());
-		
+		client = new Client(input, output);
+
+	}
+
+	public void whileChatting() throws IOException {
+		ableToType(true);
+		do {
+			message = (String) client.getMessage();
+			showMessage("\n" + message);
+
+		} while (!message.equals("/exit"));
+	}
+
+	private void sendMessage(String message) {
+		try {
+			client.sendMessage(message);
+		} catch (IOException ioException) {
+			chatWindow.append("\nMessage could not be sent!");
+		}
+	}
+
+	public void showMessage(final String TEXT) {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				chatWindow.append(TEXT);
+			}
+		});
+	}
+
+	private void ableToType(final Boolean TOF) {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				userText.setEditable(TOF);
+			}
+		});
+	}
+
+	private void close() {
+		showMessage("\nClsoing streams and sockets.");
+		ableToType(false);
+		try {
+			connection.close();
+		} catch (IOException ioException) {
+			ioException.printStackTrace();
+		}
+
 	}
 }
