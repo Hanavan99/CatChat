@@ -31,7 +31,7 @@ public class Gui extends JFrame {
 	private JButton fileChooseButton;
 	private JButton downloadFileButton;
 	private String message;
-	private String handle;
+	private String handle = "";
 	private Font font1;
 	private Socket connection;
 	private ObjectOutputStream output;
@@ -54,7 +54,7 @@ public class Gui extends JFrame {
 
 		chatWindow = new JTextArea("Welcome to Cat Chat");
 		add(new JScrollPane(chatWindow), BorderLayout.CENTER);
-		setSize(700, 700);
+		this.setBounds(560, 100, 800, 800);
 		setVisible(true);
 		chatWindow.setEditable(false);
 		this.setTitle("Cat Chat");
@@ -77,8 +77,10 @@ public class Gui extends JFrame {
 */
 		userText.requestFocusInWindow();
 		userText.selectAll();
-
-		handle = JOptionPane.showInputDialog("Enter your desired handle: ");
+		
+		do{
+			handle = JOptionPane.showInputDialog("Enter your desired handle: ");
+		}while(handle.equals(""));
 
 		startRunning();
 	}
@@ -98,7 +100,7 @@ public class Gui extends JFrame {
 	}
 
 	private void connectToServer() throws IOException {
-		connection = new Socket("10.132.22.105", 12345);
+		connection = new Socket("localhost", 12345); //127.0.0.1 104.236.244.255
 	}
 
 	private void setUpStreams() throws IOException {
@@ -144,7 +146,7 @@ public class Gui extends JFrame {
 	}
 
 	private void close() {
-		showMessage("\nClsoing streams and sockets.");
+		showMessage("\nClsoing streams and sockets. DISCONNECTED");
 		ableToType(false);
 		try {
 			connection.close();

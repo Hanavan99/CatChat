@@ -86,7 +86,7 @@ public class Server {
 		try {
 			ObjectInputStream oin = new ObjectInputStream(client.getInputStream());
 			ObjectOutputStream oout = new ObjectOutputStream(client.getOutputStream());
-			Client c = new Client(oin, oout);
+			Client c = new Client(oin, oout, null);
 			clients.add(c);
 			while (c.connected()) {
 				String line = c.getMessage();
