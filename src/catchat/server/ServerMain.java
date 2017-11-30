@@ -6,7 +6,7 @@ import java.util.Scanner;
 public class ServerMain {
 
 	public static void main(String[] args) throws IOException {
-		Server s = new Server("127.0.0.1", 12345);
+		Server s = new Server("10.131.214.3", 12345);
 		s.start();
 
 		Scanner in = new Scanner(System.in);
