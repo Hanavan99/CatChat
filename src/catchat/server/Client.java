@@ -15,11 +15,15 @@ public class Client {
 	public Client(ObjectInputStream oin, ObjectOutputStream oout, String user) throws IOException {
 		this.oin = oin;
 		this.oout = oout;
-		username = user;
+		if (user != null) {
+			username = user;
+			sendRaw(user);
+		} else {
+			username = getMessage();
+		}
 	}
 
 	public boolean connected() {
-		//return oin.;
 		return true;
 	}
 
@@ -28,12 +32,25 @@ public class Client {
 	}
 
 	public String getMessage() throws IOException {
-		return oin.readUTF();
+		try {
+			String s = (String) oin.readObject();
+			//System.out.println("Recieved message: " + s);
+			return s;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public void sendRaw(String raw) throws IOException {
+		oout.writeObject(raw);
 	}
 
 	public void sendMessage(String message) throws IOException {
-		//out.println("message\n" + message);
-		oout.writeUTF("message\n" + message);
+		// out.println("message\n" + message);
+		//System.out.println("Sending message: " + message);
+		oout.writeObject("message");
+		oout.writeObject(message);
 	}
 
 	public void sendFile(SerializableFile file) {
@@ -47,8 +64,8 @@ public class Client {
 
 	public SerializableFile getFile(String name) {
 		try {
-			//out.println("getfile\n" + name);
-			sendMessage("getfile\n");
+			// out.println("getfile\n" + name);
+			sendRaw("getfile\n");
 			Object o = oin.readObject();
 			return (SerializableFile) o;
 		} catch (Exception e) {

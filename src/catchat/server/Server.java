@@ -39,6 +39,7 @@ public class Server {
 				while (running) {
 					try {
 						Socket client = server.accept();
+						System.out.println("Client connected");
 						Thread clientThread = new Thread(() -> handleClient(client));
 						clientThread.start();
 					} catch (IOException e) {
@@ -58,12 +59,14 @@ public class Server {
 				try {
 					Thread.sleep(Long.MAX_VALUE);
 				} catch (InterruptedException e) {
+					//System.out.println("Thread interrupted");
 					Iterator<Entry<String, String>> itr = messageQueue.entrySet().iterator();
 					while (itr.hasNext()) {
 						Entry<String, String> entry = itr.next();
 						for (Client c : clients) {
 							try {
-								c.sendMessage(entry.getKey() + ": " + entry.getValue());
+								//System.out.println("Sending message to " + c.getUsername());
+								c.sendRaw(entry.getKey() + ": " + entry.getValue());
 							} catch (Exception ex) {
 								System.out.println("Failed to send message to client");
 							}
@@ -86,12 +89,13 @@ public class Server {
 		try {
 			ObjectInputStream oin = new ObjectInputStream(client.getInputStream());
 			ObjectOutputStream oout = new ObjectOutputStream(client.getOutputStream());
-			Client c = new Client(oin, oout);
+			Client c = new Client(oin, oout, null);
 			clients.add(c);
 			while (c.connected()) {
 				String line = c.getMessage();
 				switch (line) {
 				case "message":
+					//System.out.println("Recieved message from " + c.getUsername() + ": " + c.getMessage());
 					messageQueue.put(c.getUsername(), c.getMessage());
 					chatThread.interrupt();
 					break;
