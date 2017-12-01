@@ -1,7 +1,6 @@
 package catchat.server;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -20,7 +19,7 @@ import catchat.client.SerializableFile;
 
 public class Server {
 
-	private String filePath = ".";
+	private static final String FILE_PATH = "./files/";
 
 	private ServerSocket server;
 	private Map<String, String> messages = new HashMap<String, String>();
@@ -30,10 +29,11 @@ public class Server {
 	Thread serverThread;
 	Thread chatThread;
 
-	public Server(String address, int port, String rootDir) throws IOException {
+	public Server(String address, int port) throws IOException {
+		//server = new ServerSocket();
 		server = new ServerSocket(port);
-		filePath = rootDir;
-		new File(filePath).mkdirs();
+		//server.bind(new InetSocketAddress(address, port));
+
 		serverThread = new Thread(() -> {
 			try {
 				while (running) {
@@ -59,10 +59,18 @@ public class Server {
 				try {
 					Thread.sleep(Long.MAX_VALUE);
 				} catch (InterruptedException e) {
+					// System.out.println("Thread interrupted");
 					Iterator<Entry<String, String>> itr = messageQueue.entrySet().iterator();
 					while (itr.hasNext()) {
 						Entry<String, String> entry = itr.next();
-						sendMessage(entry.getKey() + ": " + entry.getValue());
+						for (Client c : clients) {
+							try {
+								// System.out.println("Sending message to " + c.getUsername());
+								c.sendRaw(entry.getKey() + ": " + entry.getValue());
+							} catch (Exception ex) {
+								System.out.println("Failed to send message to client");
+							}
+						}
 					}
 					messageQueue.clear();
 				}
@@ -87,34 +95,10 @@ public class Server {
 				String line = c.getMessage();
 				switch (line) {
 				case "message":
-					String message = c.getMessage();
-					String[] args = message.split(" ", 2);
-					switch (args[0]) {
-					case "/download":
-						if (args.length > 1) {
-							File f = new File(filePath, args[1]);
-							System.out.println("Client requested file " + f.getAbsolutePath());
-							if (f.exists()) {
-								c.writeFile(new SerializableFile(f));
-							} else {
-								c.sendRaw("File does not exist. List the files using /listfiles.");
-							}
-						}
-						break;
-					case "/handle":
-						if (args.length > 1) {
-							c.setUsername(args[1]);
-							c.sendRaw("Handle changed to '" + args[1] + "'");
-						}
-						break;
-					case "/help":
-						c.sendMessage("Commands are: /download [filename], /handle [username], /help");
-						break;
-					default:
-						messageQueue.put(c.getTime(), c.getUsername(), message);
-						chatThread.interrupt();
-						break;
-					}
+					// System.out.println("Recieved message from " + c.getUsername() + ": " +
+					// c.getMessage());
+					messageQueue.put(c.getUsername(), c.getMessage());
+					chatThread.interrupt();
 					break;
 				case "getfile":
 					c.sendFile(new SerializableFile(new File(c.getMessage())));
@@ -136,30 +120,6 @@ public class Server {
 		}
 	}
 
-	public void kickClient(String username) {
-		for (Client c : clients) {
-			if (c.getUsername().equals(username)) {
-				try {
-					c.sendMessage("You have been kicked from the server.");
-					c.close();
-				} catch (IOException e) {
-					System.out.println("Failed to kick client: " + e.getMessage());
-				}
-			}
-		}
-	}
-
-	public void sendMessage(String message) {
-		System.out.println(message);
-		for (Client c : clients) {
-			try {
-				c.sendRaw(message);
-			} catch (Exception ex) {
-				System.out.println("Failed to send message to client");
-			}
-		}
-	}
-
 	public void stop() {
 		running = false;
 		try {
@@ -176,15 +136,14 @@ public class Server {
 			System.out.println(c.getUsername());
 		}
 	}
-
+	
 	public String[] getFileNames() {
-		File[] files = new File(filePath).listFiles();
-		List<String> fileNames = new ArrayList<String>();
-		for (int i = 0; i < files.length; i++) {
-			if (!files[i].isDirectory())
-				fileNames.add(files[i].getName());
+		File[] files = new File(FILE_PATH).listFiles();
+		String[] fileNames = new String[files.length];
+		for (int i = 0; i < fileNames.length; i++) {
+			fileNames[i] = files[i].getName();
 		}
-		return fileNames.toArray(new String[0]);
+		return fileNames;
 	}
 
 }
