@@ -52,6 +52,15 @@ public class Client {
 		oout.writeObject(raw);
 	}
 
+	public Object readObject() throws IOException {
+		try {
+			return oin.readObject();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 	public void sendMessage(String message) throws IOException {
 		// out.println("message\n" + message);
 		// System.out.println("Sending message: " + message);
@@ -72,6 +81,15 @@ public class Client {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			return null;
+		}
+	}
+
+	public void writeFile(SerializableFile file) throws IOException {
+		try {
+			oout.writeObject(file);
+		} catch (Exception e) {
+			System.out.println("Failed to write file");
+			e.printStackTrace();
 		}
 	}
 

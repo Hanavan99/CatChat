@@ -93,7 +93,7 @@ public class Server {
 					case "/download":
 						if (args.length > 1) {
 							try {
-								c.sendFile(new SerializableFile(new File(filePath, args[1])));
+								c.writeFile(new SerializableFile(new File(filePath, args[1])));
 							} catch (FileNotFoundException e) {
 								c.sendRaw("File does not exist. List the files using /listfiles.");
 							}
