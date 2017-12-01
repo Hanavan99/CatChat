@@ -37,6 +37,7 @@ public class Server {
 	Thread serverThread;
 	Thread chatThread;
 
+
 	/**
 	 * Creates a new server with the specified bind address, port, and
 	 * 
@@ -78,8 +79,10 @@ public class Server {
 				try {
 					Thread.sleep(Long.MAX_VALUE);
 				} catch (InterruptedException e) {
+
 					Iterator<Entry<Long, String>> itr = messageQueue.entrySet().iterator();
 					while (itr.hasNext()) {
+
 						Entry<Long, String> entry = itr.next();
 						sendMessage(entry.getValue());
 						messages.put(entry.getKey(), entry.getValue());
@@ -120,6 +123,7 @@ public class Server {
 				String line = c.getString();
 				switch (line) {
 				case "message":
+
 					String message = c.getString();
 					String[] args = message.split(" ", 2);
 					switch (args[0]) {
@@ -242,6 +246,7 @@ public class Server {
 			System.out.println(c.getUsername());
 		}
 	}
+
 
 	/**
 	 * Gets the list of downloadable files from the server.

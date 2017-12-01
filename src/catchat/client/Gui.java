@@ -13,7 +13,6 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -32,10 +31,9 @@ public class Gui extends JFrame {
 	private JTextField userText;
 	private JTextArea chatWindow;
 	private JButton fileChooseButton;
-	private JComboBox<String> downloadFiles;
 	private JPanel panel;
-	private String message;
 	private String handle = "";
+	private String ip = "";
 	private Font font1;
 	private Socket connection;
 	private ObjectOutputStream output;
@@ -52,8 +50,10 @@ public class Gui extends JFrame {
 		userText.setEditable(false);
 		userText.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
-				sendMessage(event.getActionCommand());
-				userText.setText("");
+				if (!event.getActionCommand().equals("")) {
+					sendMessage(event.getActionCommand());
+					userText.setText("");
+				}
 			}
 		});
 		panel.add(userText, BorderLayout.NORTH);
@@ -90,22 +90,15 @@ public class Gui extends JFrame {
 			}
 		});
 
-		/*
-		 * downloadFiles = new JComboBox<>(); downloadFiles.addActionListener(new
-		 * ActionListener() { public void actionPerformed(ActionEvent event) { String
-		 * download = (String) downloadFiles.getSelectedItem();
-		 * 
-		 * SerializableFile down = client.requestFile(download); try {
-		 * System.out.println("Calling saveFile"); down.saveFile(); } catch (IOException
-		 * i) { i.printStackTrace(); } } }); panel.add(downloadFiles,
-		 * BorderLayout.SOUTH);
-		 */
-
 		add(panel, BorderLayout.SOUTH);
 		panel.setVisible(true);
 
 		userText.requestFocusInWindow();
 		userText.selectAll();
+
+		do {
+			ip = JOptionPane.showInputDialog("104.236.244.255 10.132.22.105 localhost Enter the IP: ");
+		} while (ip.equals(""));
 
 		do {
 			handle = JOptionPane.showInputDialog("Enter your desired handle: ");
@@ -132,7 +125,7 @@ public class Gui extends JFrame {
 	}
 
 	private void connectToServer() throws IOException {
-		connection = new Socket(/* "10.132.22.105" *//* "104.236.244.255" */"localhost", 12345);
+		connection = new Socket(ip, 12345); /* "10.132.22.105" *//* "104.236.244.255" *//* "localhost" */
 	}
 
 	private void setUpStreams() throws IOException {
@@ -151,8 +144,8 @@ public class Gui extends JFrame {
 				showMessage("\n" + message);
 			} else if (message instanceof SerializableFile) {
 				/*
-				   System.out.println("Recived file"); 
-				   SerializableFile file = (SerializableFile) message; file.saveFile(this);
+				 * System.out.println("Recived file"); SerializableFile file =
+				 * (SerializableFile) message; file.saveFile(this);
 				 */
 
 				SerializableFile file = (SerializableFile) message;
