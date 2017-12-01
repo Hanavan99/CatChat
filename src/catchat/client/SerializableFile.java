@@ -9,8 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.util.Scanner;
 
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 //passed filename, byteArray of contents, stroe byteArray
@@ -36,16 +36,15 @@ public class SerializableFile implements Serializable {
 
 	}
 
-	public void saveFile() throws FileNotFoundException, IOException {
+	public void saveFile(JFrame parent) throws FileNotFoundException, IOException {
 		File inFile = new File(fileName);
 		OutputStream outStream = new FileOutputStream(inFile);
-		Scanner f = new Scanner(inFile);
 		System.out.println("Saving file to " + inFile.getAbsolutePath());
 		if (inFile.exists()) {
 			// System.out.println("It seems that the file " + inFile.toString() + "exists.
 			// Do you want to overwrite? Y or N");
 			try {
-				int result = JOptionPane.showConfirmDialog(null, "It seems that the file " + inFile.toString() + "exists. Do you want to overwrite?");
+				int result = JOptionPane.showConfirmDialog(parent, "It seems that the file " + inFile.toString() + "exists. Do you want to overwrite?");
 				if (result == JOptionPane.YES_OPTION) {
 					// PrintWriter pw = new PrintWriter(inFile);
 					outStream.write(byteArray);
