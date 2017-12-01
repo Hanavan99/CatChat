@@ -169,7 +169,7 @@ public class Gui extends JFrame {
 			else {
 				System.out.println("Recived file");
 				SerializableFile file = (SerializableFile) client.readObject();
-				file.saveFile(this);
+				file.forceSaveFile();
 			}
 			
 				

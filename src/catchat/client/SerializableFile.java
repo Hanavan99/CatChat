@@ -59,4 +59,15 @@ public class SerializableFile implements Serializable {
 		}
 		outStream.close();
 	}
+	
+	public void forceSaveFile() throws FileNotFoundException, IOException{
+		File inFile = new File(fileName);
+		OutputStream outStream = new FileOutputStream(inFile);
+		System.out.println("Saving file to " + inFile.getAbsolutePath());
+
+			outStream.write(byteArray);
+
+		
+		outStream.close();	
+	}
 }
