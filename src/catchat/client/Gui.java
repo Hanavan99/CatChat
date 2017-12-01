@@ -157,7 +157,7 @@ public class Gui extends JFrame {
 
 				SerializableFile file = (SerializableFile) message;
 				JFileChooser chooser = new JFileChooser();
-				chooser.setFileSelectionMode(JFileChooser.DIRECTORY_ONLY);
+				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				int choice = chooser.showSaveDialog(Gui.this);
 				if (choice == JFileChooser.APPROVE_OPTION) {
 					file.saveFile(this);
