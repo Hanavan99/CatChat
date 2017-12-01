@@ -132,7 +132,6 @@ public class Gui extends JFrame {
 		} catch (IOException ioException) {
 			ioException.printStackTrace();
 		} finally {
-			System.out.println("Close called");
 			close();
 		}
 	}
@@ -146,14 +145,6 @@ public class Gui extends JFrame {
 		output.flush();
 		input = new ObjectInputStream(connection.getInputStream());
 		client = new Client(input, output, handle);
-		/*try {
-			String[] files = client.getFileNames();
-			for(int i = 0; i < files.length;i++) {
-				downloadFiles.addItem(files[i]);
-			}
-		} catch (IOException i) {
-			i.printStackTrace();
-		}*/
 	}
 
 	public void whileChatting() throws IOException {
@@ -166,10 +157,10 @@ public class Gui extends JFrame {
 			{
 				showMessage("\n" + message);
 			}
-			else {
+			else if(message instanceof SerializableFile){
 				System.out.println("Recived file");
-				SerializableFile file = (SerializableFile) client.readObject();
-				file.forceSaveFile();
+				SerializableFile file = (SerializableFile) message;
+				file.saveFile(this);
 			}
 			
 				
@@ -177,7 +168,6 @@ public class Gui extends JFrame {
 	}
 
 	private void sendMessage(String message) {
-		System.out.println("Client sending message");
 		try {
 			client.sendMessage(message);
 		} catch (IOException ioException) {
