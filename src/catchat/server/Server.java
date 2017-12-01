@@ -92,9 +92,11 @@ public class Server {
 					switch (args[0]) {
 					case "/download":
 						if (args.length > 1) {
-							try {
-								c.writeFile(new SerializableFile(new File(filePath, args[1])));
-							} catch (FileNotFoundException e) {
+							File f = new File(filePath, args[1]);
+							System.out.println("Client requested file " + f.getAbsolutePath());
+							if (f.exists()) {
+								c.writeFile(new SerializableFile(f));
+							} else {
 								c.sendRaw("File does not exist. List the files using /listfiles.");
 							}
 						}
@@ -119,7 +121,7 @@ public class Server {
 					break;
 				case "putfile":
 					SerializableFile file = c.getFile();
-					file.saveFile();
+					file.saveFile(null);
 					c.sendMessage("File uploaded.");
 					break;
 				case "listfiles":
