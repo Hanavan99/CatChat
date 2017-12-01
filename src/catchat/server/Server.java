@@ -104,9 +104,9 @@ public class Server {
 					c.sendFile(new SerializableFile(new File(c.getMessage())));
 					break;
 				case "putfile":
-					String filename = c.getMessage();
-					SerializableFile file = c.getFile(filename);
+					SerializableFile file = c.getFile();
 					file.saveFile();
+					c.sendMessage("File uploaded.");
 					break;
 				case "listfiles":
 					c.sendFileNames(getFileNames());

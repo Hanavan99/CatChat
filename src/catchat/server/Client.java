@@ -54,7 +54,7 @@ public class Client {
 		sendRaw("message");
 		sendRaw(message);
 	}
-	
+
 	public void sendFileNames(String[] files) throws IOException {
 		oout.writeObject(files);
 	}
@@ -70,6 +70,7 @@ public class Client {
 
 	public void sendFile(SerializableFile file) {
 		try {
+			sendRaw("putfile");
 			oout.writeObject(file);
 		} catch (Exception e) {
 			System.out.println("Failed to send file");
@@ -77,7 +78,16 @@ public class Client {
 		}
 	}
 
-	public SerializableFile getFile(String name) {
+	public SerializableFile getFile() throws IOException {
+		try {
+			return (SerializableFile) oin.readObject();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public SerializableFile requestFile(String name) {
 		try {
 			// out.println("getfile\n" + name);
 			sendRaw("getfile\n");
