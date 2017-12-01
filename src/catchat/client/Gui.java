@@ -159,14 +159,15 @@ public class Gui extends JFrame {
 	public void whileChatting() throws IOException {
 		ableToType(true);
 		do {
-			message = (String) client.getMessage();
+			Object message = new Object();
+			
 			String[] pieces = message.split(" ");
 			if(pieces[0].equals("/download"))
 			{
 				SerializableFile file = client.getFile();
 				file.saveFile();
 			}
-			else
+			
 				showMessage("\n" + message);
 		} while (true);
 	}
