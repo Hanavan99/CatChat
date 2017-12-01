@@ -5,6 +5,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 import catchat.client.SerializableFile;
+import catchat.core.Command;
+import catchat.core.NetworkHandler;
 
 /**
  * Represents a client on both the client and the server.
@@ -16,6 +18,7 @@ public class Client {
 
 	private ObjectInputStream oin;
 	private ObjectOutputStream oout;
+	private NetworkHandler handler;
 	private String username;
 	private boolean connected = true;
 
@@ -30,13 +33,16 @@ public class Client {
 	 * @param user
 	 *            the username; if on creation the username is unknown, specify
 	 *            {@code null}
+	 * @param handler
+	 *            the network handler that recieves events
 	 * @throws IOException
 	 *             if there is a problem sending the username to the server, if
 	 *             applicable
 	 */
-	public Client(ObjectInputStream oin, ObjectOutputStream oout, String user) throws IOException {
+	public Client(ObjectInputStream oin, ObjectOutputStream oout, String user, NetworkHandler handler) throws IOException {
 		this.oin = oin;
 		this.oout = oout;
+		this.handler = handler;
 		if (user != null) {
 			username = user;
 			putString(user);
@@ -80,7 +86,7 @@ public class Client {
 	 * @throws IOException
 	 *             if reading the string fails
 	 */
-	public String getString() throws IOException {
+	private String getString() throws IOException {
 		try {
 			String s = (String) oin.readObject();
 			return s;
@@ -102,21 +108,21 @@ public class Client {
 		oout.writeObject(string);
 	}
 
-	/**
-	 * Reads a generic object from the current {@code ObjectInputStream}.
-	 * 
-	 * @return the object
-	 * @throws IOException
-	 *             if reading the string fails
-	 */
-	public Object readObject() throws IOException {
-		try {
-			return oin.readObject();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+	// /**
+	// * Reads a generic object from the current {@code ObjectInputStream}.
+	// *
+	// * @return the object
+	// * @throws IOException
+	// * if reading the string fails
+	// */
+	// public Object readObject() throws IOException {
+	// try {
+	// return oin.readObject();
+	// } catch (ClassNotFoundException e) {
+	// e.printStackTrace();
+	// return null;
+	// }
+	// }
 
 	/**
 	 * Sends a formatted message using the current {@code ObjectOutputStream}.
@@ -143,24 +149,24 @@ public class Client {
 		oout.writeObject(files);
 	}
 
-	/**
-	 * Gets the file names sent by the server.
-	 * 
-	 * @return the file names
-	 * @throws IOException
-	 *             if reading the file names failed
-	 */
-	public String[] getFileNames() throws IOException {
-		try {
-			putString("listfiles");
-			String[] files = (String[]) oin.readObject();
-			System.out.println(files.length);
-			return files;
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+	// /**
+	// * Gets the file names sent by the server.
+	// *
+	// * @return the file names
+	// * @throws IOException
+	// * if reading the file names failed
+	// */
+	// public String[] getFileNames() throws IOException {
+	// try {
+	// putString("listfiles");
+	// String[] files = (String[]) oin.readObject();
+	// System.out.println(files.length);
+	// return files;
+	// } catch (ClassNotFoundException e) {
+	// e.printStackTrace();
+	// return null;
+	// }
+	// }
 
 	/**
 	 * Writes a file to the current {@code ObjectOutputStream}.
@@ -195,19 +201,47 @@ public class Client {
 		}
 	}
 
+	// /**
+	// * Gets the last sent file. Only used by the client.
+	// *
+	// * @return the file
+	// * @throws IOException
+	// * if reading the file fails
+	// */
+	// public SerializableFile getFile() throws IOException {
+	// try {
+	// return (SerializableFile) oin.readObject();
+	// } catch (ClassNotFoundException e) {
+	// e.printStackTrace();
+	// return null;
+	// }
+	// }
+
 	/**
-	 * Gets the last sent file. Only used by the client.
+	 * Polls the server for objects. If block is {@code true}, this method will
+	 * block until an object is recieved.
 	 * 
-	 * @return the file
+	 * @param block
+	 *            if the method should block
 	 * @throws IOException
-	 *             if reading the file fails
+	 *             if there is an error reading the object
 	 */
-	public SerializableFile getFile() throws IOException {
+	public void pollEvents(boolean block) throws IOException {
 		try {
-			return (SerializableFile) oin.readObject();
+			if ((oin.available() > 0 || block) && handler != null) {
+				Object o = oin.readObject();
+				if (o instanceof String) {
+					handler.messageRecieved(o.toString());
+				} else if (o instanceof SerializableFile) {
+					handler.fileRecieved((SerializableFile) o);
+				} else if (o instanceof Command) {
+					handler.commandRecieved((Command) o);
+				} else {
+					System.out.println("Server recieved a hot potato, throwing it to the next person");
+				}
+			}
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
-			return null;
 		}
 	}
 

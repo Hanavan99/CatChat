@@ -58,13 +58,15 @@ public class SerializableFile implements Serializable {
 	 * 
 	 * @param parent
 	 *            the parent frame
+	 * @param path
+	 *            the path to save to
 	 * @throws FileNotFoundException
 	 *             if the file could not be found
 	 * @throws IOException
 	 *             if there was an error writing the file
 	 */
-	public void saveFile(JFrame parent) throws FileNotFoundException, IOException {
-		File inFile = new File(fileName);
+	public void saveFile(JFrame parent, File path) throws FileNotFoundException, IOException {
+		File inFile = new File(path, fileName);
 		OutputStream outStream = new FileOutputStream(inFile);
 		System.out.println("Saving file to " + inFile.getAbsolutePath());
 		if (inFile.exists()) {
@@ -77,7 +79,7 @@ public class SerializableFile implements Serializable {
 					outStream.write(byteArray);
 				}
 			} catch (HeadlessException e) {
-				e.printStackTrace();
+				System.out.println("Program is running headless, overwriting file");
 				outStream.write(byteArray);
 			}
 		} else {

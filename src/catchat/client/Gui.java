@@ -24,6 +24,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import catchat.core.NetworkHandler;
 import catchat.server.Client;
 
 public class Gui extends JFrame {
@@ -149,32 +150,34 @@ public class Gui extends JFrame {
 		output = new ObjectOutputStream(connection.getOutputStream());
 		output.flush();
 		input = new ObjectInputStream(connection.getInputStream());
-		client = new Client(input, output, handle);
+		client = new Client(input, output, handle, new NetworkHandler() {
+
+			@Override
+			public void fileRecieved(SerializableFile file) {
+				JFileChooser chooser = new JFileChooser();
+				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				int choice = chooser.showSaveDialog(Gui.this);
+				if (choice == JFileChooser.APPROVE_OPTION) {
+					try {
+						file.saveFile(Gui.this, chooser.getSelectedFile());
+					} catch (IOException e) {
+						System.out.println("Error saving file");
+					}
+				}
+			}
+
+			@Override
+			public void messageRecieved(String message) {
+				showMessage("\n" + message);
+			}
+
+		});
 	}
 
 	public void whileChatting() throws IOException {
 		ableToType(true);
 		do {
-			Object message = client.readObject();
-
-			if (message instanceof String) {
-				showMessage("\n" + message);
-			} else if (message instanceof SerializableFile) {
-				/*
-				 * System.out.println("Recived file"); SerializableFile file =
-				 * (SerializableFile) message; file.saveFile(this);
-				 */
-
-				SerializableFile file = (SerializableFile) message;
-				JFileChooser chooser = new JFileChooser();
-				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				int choice = chooser.showSaveDialog(Gui.this);
-				if (choice == JFileChooser.APPROVE_OPTION) {
-					file.saveFile(this);
-				}
-
-			}
-
+			client.pollEvents(true);
 		} while (true);
 	}
 
