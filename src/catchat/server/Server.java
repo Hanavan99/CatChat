@@ -116,6 +116,7 @@ public class Server {
 			if (c.getUsername().equals(username)) {
 				try {
 					c.sendMessage("You have been kicked from the server.");
+					c.close();
 				} catch (IOException e) {
 					System.out.println("Failed to kick client: " + e.getMessage());
 				}
