@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.EOFException;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -54,12 +55,12 @@ public class Gui extends JFrame {
 
 		chatWindow = new JTextArea("Welcome to Cat Chat");
 		add(new JScrollPane(chatWindow), BorderLayout.CENTER);
-		this.setBounds(560, 100, 800, 800);
+		this.setBounds(560, 100, 800, 850);
 		setVisible(true);
 		chatWindow.setEditable(false);
 		this.setTitle("Cat Chat");
 		chatWindow.setFont(font1);
-/*
+
 		fileChooseButton = new JButton("Files");
 		add(fileChooseButton, BorderLayout.SOUTH);
 		fileChooseButton.addActionListener(new ActionListener() {
@@ -70,17 +71,25 @@ public class Gui extends JFrame {
 					return;
 				File chosenFile = chooser.getSelectedFile();
 
-				SerializableFile file = new SerializableFile(chosenFile);
-				client.sendFile(file);
+				SerializableFile file;
+				try {
+					file = new SerializableFile(chosenFile);
+					client.sendFile(file);
+				} catch (FileNotFoundException e1) {
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+				
 			}
 		});
-*/
+
 		userText.requestFocusInWindow();
 		userText.selectAll();
-		
-		do{
+
+		do {
 			handle = JOptionPane.showInputDialog("Enter your desired handle: ");
-		}while(handle.equals(""));
+		} while (handle.equals(""));
 
 		startRunning();
 	}
@@ -100,7 +109,7 @@ public class Gui extends JFrame {
 	}
 
 	private void connectToServer() throws IOException {
-		connection = new Socket(/*"10.132.22.105"*/"localhost", 12345);
+		connection = new Socket("104.236.244.255"/*"localhost"*/, 12345);
 	}
 
 	private void setUpStreams() throws IOException {
