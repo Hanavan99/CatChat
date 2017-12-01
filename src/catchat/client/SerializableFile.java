@@ -39,7 +39,6 @@ public class SerializableFile implements Serializable {
 	public void saveFile() throws FileNotFoundException, IOException {
 		File inFile = new File(fileName);
 		OutputStream outStream = new FileOutputStream(inFile);
-		Scanner f = new Scanner(inFile);
 		System.out.println("Saving file to " + inFile.getAbsolutePath());
 		if (inFile.exists()) {
 			// System.out.println("It seems that the file " + inFile.toString() + "exists.
@@ -51,6 +50,7 @@ public class SerializableFile implements Serializable {
 					outStream.write(byteArray);
 				}
 			} catch (HeadlessException e) {
+				e.printStackTrace();
 				outStream.write(byteArray);
 			}
 		} else {

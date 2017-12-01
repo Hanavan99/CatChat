@@ -33,6 +33,10 @@ public class Client {
 		return username;
 	}
 
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
 	public String getMessage() throws IOException {
 		try {
 			String s = (String) oin.readObject();
@@ -46,6 +50,15 @@ public class Client {
 
 	public void sendRaw(String raw) throws IOException {
 		oout.writeObject(raw);
+	}
+
+	public Object readObject() throws IOException {
+		try {
+			return oin.readObject();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	public void sendMessage(String message) throws IOException {
@@ -62,10 +75,21 @@ public class Client {
 	public String[] getFileNames() throws IOException {
 		try {
 			sendRaw("listfiles");
-			return (String[]) oin.readObject();
+			String[] files = (String[]) oin.readObject();
+			System.out.println(files.length);
+			return files;
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			return null;
+		}
+	}
+
+	public void writeFile(SerializableFile file) throws IOException {
+		try {
+			oout.writeObject(file);
+		} catch (Exception e) {
+			System.out.println("Failed to write file");
+			e.printStackTrace();
 		}
 	}
 
@@ -99,7 +123,7 @@ public class Client {
 			return null;
 		}
 	}
-	
+
 	public void close() throws IOException {
 		oin.close();
 		oout.close();
