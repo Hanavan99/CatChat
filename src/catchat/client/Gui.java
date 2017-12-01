@@ -44,7 +44,7 @@ public class Gui extends JFrame {
 
 	public Gui() {
 		font1 = new Font("SansSerif", Font.BOLD, 15);
-		
+
 		panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 
@@ -61,7 +61,7 @@ public class Gui extends JFrame {
 
 		chatWindow = new JTextArea("Welcome to Cat Chat");
 		add(new JScrollPane(chatWindow), BorderLayout.CENTER);
-		this.setBounds(560, 100, 800, 750);
+		this.setBounds(560, 100, 799, 749);
 		setVisible(true);
 		chatWindow.setEditable(false);
 		this.setTitle("Cat Chat");
@@ -86,36 +86,37 @@ public class Gui extends JFrame {
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
-				
+
 			}
 		});
-		
-		
+
+		downloadFiles = new JComboBox<>();
 		downloadFiles.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
+				String download = (String) downloadFiles.getSelectedItem();
+
+				SerializableFile down = client.requestFile(download);
 				try {
-					downloadFiles = new JComboBox<>(client.getFileNames());
-				}
-				catch(IOException i) {
+					down.saveFile();
+				} catch (IOException i) {
 					i.printStackTrace();
 				}
-				String download = (String)downloadFiles.getSelectedItem();
-				
-				SerializableFile down = client.requestFile(download);
-				down.saveFile();
 			}
 		});
-		
+		panel.add(downloadFiles, BorderLayout.SOUTH);
 
 		add(panel, BorderLayout.SOUTH);
-		repaint();
-		
+		panel.setVisible(true);
+
 		userText.requestFocusInWindow();
 		userText.selectAll();
 
 		do {
 			handle = JOptionPane.showInputDialog("Enter your desired handle: ");
 		} while (handle.equals(""));
+
+		this.setBounds(560, 100, 800, 750);
+		this.repaint();
 
 		startRunning();
 	}
@@ -130,12 +131,13 @@ public class Gui extends JFrame {
 		} catch (IOException ioException) {
 			ioException.printStackTrace();
 		} finally {
+			System.out.println("Close called");
 			close();
 		}
 	}
 
 	private void connectToServer() throws IOException {
-		connection = new Socket(/* "104.236.244.255" */"localhost", 12345);
+		connection = new Socket("104.236.244.255"/*"localhost"*/, 12345);
 	}
 
 	private void setUpStreams() throws IOException {
@@ -143,8 +145,12 @@ public class Gui extends JFrame {
 		output.flush();
 		input = new ObjectInputStream(connection.getInputStream());
 		client = new Client(input, output, handle);
-		System.out.println(client);
-
+		try {
+			downloadFiles = new JComboBox<>(client.getFileNames());
+			System.out.println(client.getFileNames());
+		} catch (IOException i) {
+			i.printStackTrace();
+		}
 	}
 
 	public void whileChatting() throws IOException {
@@ -152,8 +158,7 @@ public class Gui extends JFrame {
 		do {
 			message = (String) client.getMessage();
 			showMessage("\n" + message);
-
-		} while (!message.equals("/exit"));
+		} while (true);
 	}
 
 	private void sendMessage(String message) {
@@ -189,6 +194,5 @@ public class Gui extends JFrame {
 		} catch (IOException ioException) {
 			ioException.printStackTrace();
 		}
-
 	}
 }
