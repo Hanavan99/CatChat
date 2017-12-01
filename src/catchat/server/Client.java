@@ -3,8 +3,8 @@ package catchat.server;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import catchat.client.SerializableFile;
 
@@ -123,6 +123,12 @@ public class Client {
 			return null;
 		}
 	}
+	
+	public String getTime(){
+        Calendar cal = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+        return (sdf.format(cal.getTime())+" ");
+    }
 
 	public void close() throws IOException {
 		oin.close();
