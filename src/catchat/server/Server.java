@@ -19,7 +19,7 @@ import catchat.client.SerializableFile;
 
 public class Server {
 
-	private static final String FILE_PATH = "files/";
+	private String filePath = ".";
 
 	private ServerSocket server;
 	private Map<String, String> messages = new HashMap<String, String>();
@@ -29,9 +29,10 @@ public class Server {
 	Thread serverThread;
 	Thread chatThread;
 
-	public Server(String address, int port) throws IOException {
+	public Server(String address, int port, String rootDir) throws IOException {
 		server = new ServerSocket(port);
-		new File(FILE_PATH).mkdirs();
+		filePath = rootDir;
+		new File(filePath).mkdirs();
 		serverThread = new Thread(() -> {
 			try {
 				while (running) {
@@ -60,14 +61,7 @@ public class Server {
 					Iterator<Entry<String, String>> itr = messageQueue.entrySet().iterator();
 					while (itr.hasNext()) {
 						Entry<String, String> entry = itr.next();
-						System.out.println(entry.getKey() + ": " + entry.getValue());
-						for (Client c : clients) {
-							try {
-								c.sendRaw(entry.getKey() + ": " + entry.getValue());
-							} catch (Exception ex) {
-								System.out.println("Failed to send message to client");
-							}
-						}
+						sendMessage(entry.getKey() + ": " + entry.getValue());
 					}
 					messageQueue.clear();
 				}
@@ -128,6 +122,17 @@ public class Server {
 			}
 		}
 	}
+	
+	public void sendMessage(String message) {
+		System.out.println(message);
+		for (Client c : clients) {
+			try {
+				c.sendRaw(message);
+			} catch (Exception ex) {
+				System.out.println("Failed to send message to client");
+			}
+		}
+	}
 
 	public void stop() {
 		running = false;
@@ -147,12 +152,11 @@ public class Server {
 	}
 
 	public String[] getFileNames() {
-		File[] files = new File(FILE_PATH).listFiles();
+		File[] files = new File(filePath).listFiles();
 		List<String> fileNames = new ArrayList<String>();
 		for (int i = 0; i < files.length; i++) {
 			if (!files[i].isDirectory())
 				fileNames.add(files[i].getName());
-			System.out.println(files[i].getName());
 		}
 		return fileNames.toArray(new String[0]);
 	}
