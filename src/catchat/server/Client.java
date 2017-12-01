@@ -98,5 +98,10 @@ public class Client {
 			return null;
 		}
 	}
+	
+	public void close() throws IOException {
+		oin.close();
+		oout.close();
+	}
 
 }
