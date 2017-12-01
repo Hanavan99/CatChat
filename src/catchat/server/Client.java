@@ -167,6 +167,10 @@ public class Client {
 		writeObject(command);
 	}
 
+	public void requestFile(String filename) {
+		writeObject(new Command("getfile " + filename));
+	}
+
 	/**
 	 * Polls the server for objects. If block is {@code true}, this method will
 	 * block until an object is recieved.
