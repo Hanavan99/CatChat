@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -31,8 +30,9 @@ public class Server {
 	Thread chatThread;
 
 	public Server(String address, int port) throws IOException {
-		server = new ServerSocket();
-		server.bind(new InetSocketAddress(address, port));
+		//server = new ServerSocket();
+		server = new ServerSocket(port);
+		//server.bind(new InetSocketAddress(address, port));
 
 		serverThread = new Thread(() -> {
 			try {
@@ -105,7 +105,7 @@ public class Server {
 					break;
 				case "putfile":
 					String filename = c.getMessage();
-					SerializableFile file = c.getFile(c.getMessage());
+					SerializableFile file = c.getFile(filename);
 					file.saveFile();
 					break;
 				case "listfiles":
@@ -129,16 +129,6 @@ public class Server {
 		}
 		serverThread.interrupt();
 		chatThread.interrupt();
-	}
-
-	private File readFile(ObjectInputStream oin) {
-		try {
-			File f = (File) oin.readObject();
-			return f;
-		} catch (Exception e) {
-			System.out.println("Error reading file");
-			return null;
-		}
 	}
 
 	public void printClients() {
