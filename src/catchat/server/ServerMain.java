@@ -33,8 +33,8 @@ public class ServerMain {
 					String line = "";
 					while ((value = procin.read()) != -1) {
 						char c = (char) value;
-						System.out.print(c);
-						if (c != '\n') {
+						//System.out.print(c);
+						if (c != '\n' && c != '\r') {
 							line += c;
 						} else {
 							s.sendMessage(line);
