@@ -61,6 +61,7 @@ public class Client {
 
 	public String[] getFileNames() throws IOException {
 		try {
+			sendRaw("listfiles");
 			return (String[]) oin.readObject();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
