@@ -13,9 +13,11 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -30,7 +32,8 @@ public class Gui extends JFrame {
 	private JTextField userText;
 	private JTextArea chatWindow;
 	private JButton fileChooseButton;
-	private JButton downloadFileButton;
+	private JComboBox<String> downloadFiles;
+	private JPanel panel;
 	private String message;
 	private String handle = "";
 	private Font font1;
@@ -42,6 +45,9 @@ public class Gui extends JFrame {
 	public Gui() {
 		font1 = new Font("SansSerif", Font.BOLD, 15);
 
+		panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+
 		userText = new JTextField("Type here...");
 		userText.setEditable(false);
 		userText.addActionListener(new ActionListener() {
@@ -50,19 +56,19 @@ public class Gui extends JFrame {
 				userText.setText("");
 			}
 		});
-		add(userText, BorderLayout.SOUTH);
+		panel.add(userText, BorderLayout.NORTH);
 		userText.setFont(font1);
 
 		chatWindow = new JTextArea("Welcome to Cat Chat");
 		add(new JScrollPane(chatWindow), BorderLayout.CENTER);
-		this.setBounds(560, 100, 800, 850);
+		this.setBounds(560, 100, 799, 749);
 		setVisible(true);
 		chatWindow.setEditable(false);
 		this.setTitle("Cat Chat");
 		chatWindow.setFont(font1);
 
-		fileChooseButton = new JButton("Files");
-		add(fileChooseButton, BorderLayout.SOUTH);
+		fileChooseButton = new JButton("Upload File");
+		panel.add(fileChooseButton, BorderLayout.CENTER);
 		fileChooseButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = new JFileChooser();
@@ -80,9 +86,27 @@ public class Gui extends JFrame {
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
-				
+
 			}
 		});
+
+		downloadFiles = new JComboBox<>();
+		downloadFiles.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				String download = (String) downloadFiles.getSelectedItem();
+
+				SerializableFile down = client.requestFile(download);
+				try {
+					down.saveFile();
+				} catch (IOException i) {
+					i.printStackTrace();
+				}
+			}
+		});
+		panel.add(downloadFiles, BorderLayout.SOUTH);
+
+		add(panel, BorderLayout.SOUTH);
+		panel.setVisible(true);
 
 		userText.requestFocusInWindow();
 		userText.selectAll();
@@ -90,6 +114,9 @@ public class Gui extends JFrame {
 		do {
 			handle = JOptionPane.showInputDialog("Enter your desired handle: ");
 		} while (handle.equals(""));
+
+		this.setBounds(560, 100, 800, 750);
+		this.repaint();
 
 		startRunning();
 	}
@@ -104,6 +131,7 @@ public class Gui extends JFrame {
 		} catch (IOException ioException) {
 			ioException.printStackTrace();
 		} finally {
+			System.out.println("Close called");
 			close();
 		}
 	}
@@ -117,8 +145,12 @@ public class Gui extends JFrame {
 		output.flush();
 		input = new ObjectInputStream(connection.getInputStream());
 		client = new Client(input, output, handle);
-		System.out.println(client);
-
+		try {
+			downloadFiles = new JComboBox<>(client.getFileNames());
+			System.out.println(client.getFileNames());
+		} catch (IOException i) {
+			i.printStackTrace();
+		}
 	}
 
 	public void whileChatting() throws IOException {
@@ -126,8 +158,7 @@ public class Gui extends JFrame {
 		do {
 			message = (String) client.getMessage();
 			showMessage("\n" + message);
-
-		} while (!message.equals("/exit"));
+		} while (true);
 	}
 
 	private void sendMessage(String message) {
@@ -163,6 +194,5 @@ public class Gui extends JFrame {
 		} catch (IOException ioException) {
 			ioException.printStackTrace();
 		}
-
 	}
 }
