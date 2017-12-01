@@ -19,7 +19,7 @@ import catchat.client.SerializableFile;
 
 public class Server {
 
-	private static final String FILE_PATH = "./files/";
+	private String filePath = ".";
 
 	private ServerSocket server;
 	private Map<String, String> messages = new HashMap<String, String>();
@@ -29,11 +29,10 @@ public class Server {
 	Thread serverThread;
 	Thread chatThread;
 
-	public Server(String address, int port) throws IOException {
-		//server = new ServerSocket();
+	public Server(String address, int port, String rootDir) throws IOException {
 		server = new ServerSocket(port);
-		//server.bind(new InetSocketAddress(address, port));
-
+		filePath = rootDir;
+		new File(filePath).mkdirs();
 		serverThread = new Thread(() -> {
 			try {
 				while (running) {
@@ -59,18 +58,10 @@ public class Server {
 				try {
 					Thread.sleep(Long.MAX_VALUE);
 				} catch (InterruptedException e) {
-					// System.out.println("Thread interrupted");
 					Iterator<Entry<String, String>> itr = messageQueue.entrySet().iterator();
 					while (itr.hasNext()) {
 						Entry<String, String> entry = itr.next();
-						for (Client c : clients) {
-							try {
-								// System.out.println("Sending message to " + c.getUsername());
-								c.sendRaw(entry.getKey() + ": " + entry.getValue());
-							} catch (Exception ex) {
-								System.out.println("Failed to send message to client");
-							}
-						}
+						sendMessage(entry.getKey() + ": " + entry.getValue());
 					}
 					messageQueue.clear();
 				}
@@ -120,6 +111,29 @@ public class Server {
 		}
 	}
 
+	public void kickClient(String username) {
+		for (Client c : clients) {
+			if (c.getUsername().equals(username)) {
+				try {
+					c.sendMessage("You have been kicked from the server.");
+				} catch (IOException e) {
+					System.out.println("Failed to kick client: " + e.getMessage());
+				}
+			}
+		}
+	}
+	
+	public void sendMessage(String message) {
+		System.out.println(message);
+		for (Client c : clients) {
+			try {
+				c.sendRaw(message);
+			} catch (Exception ex) {
+				System.out.println("Failed to send message to client");
+			}
+		}
+	}
+
 	public void stop() {
 		running = false;
 		try {
@@ -136,14 +150,15 @@ public class Server {
 			System.out.println(c.getUsername());
 		}
 	}
-	
+
 	public String[] getFileNames() {
-		File[] files = new File(FILE_PATH).listFiles();
-		String[] fileNames = new String[files.length];
-		for (int i = 0; i < fileNames.length; i++) {
-			fileNames[i] = files[i].getName();
+		File[] files = new File(filePath).listFiles();
+		List<String> fileNames = new ArrayList<String>();
+		for (int i = 0; i < files.length; i++) {
+			if (!files[i].isDirectory())
+				fileNames.add(files[i].getName());
 		}
-		return fileNames;
+		return fileNames.toArray(new String[0]);
 	}
 
 }
