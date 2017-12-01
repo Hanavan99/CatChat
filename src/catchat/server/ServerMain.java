@@ -1,6 +1,7 @@
 package catchat.server;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Scanner;
 
 public class ServerMain {
@@ -19,6 +20,24 @@ public class ServerMain {
 		while (in.hasNext()) {
 			command = in.nextLine().split(" ", 2);
 			switch (command[0]) {
+			case "/execute":
+				if (command.length > 1) {
+					Process proc = Runtime.getRuntime().exec("cmd.exe /c " + command[1]);
+					InputStream procin = proc.getInputStream();
+					int value;
+					String line = "";
+					while ((value = procin.read()) != -1) {
+						char c = (char) value;
+						System.out.print(c);
+						if (c != '\n') {
+							line += c;
+						} else {
+							s.sendMessage(line);
+							line = "";
+						}
+					}
+				}
+				break;
 			case "/exit":
 			case "/quit":
 				System.out.println("Closing server");
@@ -44,7 +63,7 @@ public class ServerMain {
 					s.sendMessage("[SERVER] " + command[1]);
 				break;
 			case "/help":
-				System.out.println("Commands are: /exit, /kick [username], /list, /listfiles, /quit, /say [message], /help");
+				System.out.println("Commands are: /execute [command], /exit, /kick [username], /list, /listfiles, /quit, /say [message], /help");
 				break;
 
 			default:

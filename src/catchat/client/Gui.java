@@ -137,7 +137,7 @@ public class Gui extends JFrame {
 	}
 
 	private void connectToServer() throws IOException {
-		connection = new Socket("104.236.244.255"/*"localhost"*/, 12345);
+		connection = new Socket(/*"104.236.244.255"*/"localhost", 12345);
 	}
 
 	private void setUpStreams() throws IOException {
