@@ -90,21 +90,16 @@ public class Gui extends JFrame {
 			}
 		});
 
-		/*downloadFiles = new JComboBox<>();
-		downloadFiles.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				String download = (String) downloadFiles.getSelectedItem();
-
-				SerializableFile down = client.requestFile(download);
-				try {
-					System.out.println("Calling saveFile");
-					down.saveFile();
-				} catch (IOException i) {
-					i.printStackTrace();
-				}
-			}
-		});
-		panel.add(downloadFiles, BorderLayout.SOUTH);*/
+		/*
+		 * downloadFiles = new JComboBox<>(); downloadFiles.addActionListener(new
+		 * ActionListener() { public void actionPerformed(ActionEvent event) { String
+		 * download = (String) downloadFiles.getSelectedItem();
+		 * 
+		 * SerializableFile down = client.requestFile(download); try {
+		 * System.out.println("Calling saveFile"); down.saveFile(); } catch (IOException
+		 * i) { i.printStackTrace(); } } }); panel.add(downloadFiles,
+		 * BorderLayout.SOUTH);
+		 */
 
 		add(panel, BorderLayout.SOUTH);
 		panel.setVisible(true);
@@ -137,7 +132,7 @@ public class Gui extends JFrame {
 	}
 
 	private void connectToServer() throws IOException {
-		connection = new Socket("10.132.22.105"/*"104.236.244.255"*//*"localhost"*/, 12345);
+		connection = new Socket(/* "10.132.22.105" *//* "104.236.244.255" */"localhost", 12345);
 	}
 
 	private void setUpStreams() throws IOException {
@@ -151,19 +146,24 @@ public class Gui extends JFrame {
 		ableToType(true);
 		do {
 			Object message = client.readObject();
-			
-			
-			if(message instanceof String)
-			{
+
+			if (message instanceof String) {
 				showMessage("\n" + message);
-			}
-			else if(message instanceof SerializableFile){
-				System.out.println("Recived file");
+			} else if (message instanceof SerializableFile) {
+				/*
+				   System.out.println("Recived file"); 
+				   SerializableFile file = (SerializableFile) message; file.saveFile(this);
+				 */
+
 				SerializableFile file = (SerializableFile) message;
-				file.saveFile(this);
+				JFileChooser chooser = new JFileChooser();
+				int choice = chooser.showSaveDialog(Gui.this);
+				if (choice == JFileChooser.APPROVE_OPTION) {
+					file.saveFile(this);
+				}
+
 			}
-			
-				
+
 		} while (true);
 	}
 
@@ -182,7 +182,7 @@ public class Gui extends JFrame {
 			}
 		});
 	}
-	
+
 	private void ableToType(final Boolean TOF) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {

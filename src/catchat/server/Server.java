@@ -111,7 +111,7 @@ public class Server {
 						c.sendMessage("Commands are: /download [filename], /handle [username], /help");
 						break;
 					default:
-						messageQueue.put(c.getUsername(), message);
+						messageQueue.put(c.getTime(), c.getUsername(), message);
 						chatThread.interrupt();
 						break;
 					}
