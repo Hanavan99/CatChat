@@ -33,6 +33,10 @@ public class Client {
 		return username;
 	}
 
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
 	public String getMessage() throws IOException {
 		try {
 			String s = (String) oin.readObject();
@@ -101,7 +105,7 @@ public class Client {
 			return null;
 		}
 	}
-	
+
 	public void close() throws IOException {
 		oin.close();
 		oout.close();

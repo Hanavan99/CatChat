@@ -1,6 +1,7 @@
 package catchat.server;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -86,10 +87,32 @@ public class Server {
 				String line = c.getMessage();
 				switch (line) {
 				case "message":
-					// System.out.println("Recieved message from " + c.getUsername() + ": " +
-					// c.getMessage());
-					messageQueue.put(c.getUsername(), c.getMessage());
-					chatThread.interrupt();
+					String message = c.getMessage();
+					String[] args = message.split(" ", 2);
+					switch (args[0]) {
+					case "/download":
+						if (args.length > 1) {
+							try {
+								c.sendFile(new SerializableFile(new File(filePath, args[1])));
+							} catch (FileNotFoundException e) {
+								c.sendRaw("File does not exist. List the files using /listfiles.");
+							}
+						}
+						break;
+					case "/handle":
+						if (args.length > 1) {
+							c.setUsername(args[1]);
+							c.sendRaw("Handle changed to '" + args[1] + "'");
+						}
+						break;
+					case "/help":
+						c.sendMessage("Commands are: /download [filename], /handle [username], /help");
+						break;
+					default:
+						messageQueue.put(c.getUsername(), message);
+						chatThread.interrupt();
+						break;
+					}
 					break;
 				case "getfile":
 					c.sendFile(new SerializableFile(new File(c.getMessage())));
@@ -123,7 +146,7 @@ public class Server {
 			}
 		}
 	}
-	
+
 	public void sendMessage(String message) {
 		System.out.println(message);
 		for (Client c : clients) {
