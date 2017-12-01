@@ -90,20 +90,21 @@ public class Gui extends JFrame {
 			}
 		});
 
-		downloadFiles = new JComboBox<>();
+		/*downloadFiles = new JComboBox<>();
 		downloadFiles.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				String download = (String) downloadFiles.getSelectedItem();
 
 				SerializableFile down = client.requestFile(download);
 				try {
+					System.out.println("Calling saveFile");
 					down.saveFile();
 				} catch (IOException i) {
 					i.printStackTrace();
 				}
 			}
 		});
-		panel.add(downloadFiles, BorderLayout.SOUTH);
+		panel.add(downloadFiles, BorderLayout.SOUTH);*/
 
 		add(panel, BorderLayout.SOUTH);
 		panel.setVisible(true);
@@ -127,7 +128,7 @@ public class Gui extends JFrame {
 			setUpStreams();
 			whileChatting();
 		} catch (EOFException eofException) {
-			showMessage("\nClient terminated connection");
+			showMessage("\nServer terminated connection");
 		} catch (IOException ioException) {
 			ioException.printStackTrace();
 		} finally {
@@ -137,7 +138,7 @@ public class Gui extends JFrame {
 	}
 
 	private void connectToServer() throws IOException {
-		connection = new Socket("104.236.244.255"/*"localhost"*/, 12345);
+		connection = new Socket("10.132.22.105"/*"104.236.244.255"*//*"localhost"*/, 12345);
 	}
 
 	private void setUpStreams() throws IOException {
@@ -145,19 +146,28 @@ public class Gui extends JFrame {
 		output.flush();
 		input = new ObjectInputStream(connection.getInputStream());
 		client = new Client(input, output, handle);
-		try {
-			downloadFiles = new JComboBox<>(client.getFileNames());
-			System.out.println(client.getFileNames());
+		/*try {
+			String[] files = client.getFileNames();
+			for(int i = 0; i < files.length;i++) {
+				downloadFiles.addItem(files[i]);
+			}
 		} catch (IOException i) {
 			i.printStackTrace();
-		}
+		}*/
 	}
 
 	public void whileChatting() throws IOException {
 		ableToType(true);
 		do {
 			message = (String) client.getMessage();
-			showMessage("\n" + message);
+			String[] pieces = message.split(" ");
+			if(pieces[0].equals("/download"))
+			{
+				SerializableFile file = client.getFile();
+				file.saveFile();
+			}
+			else
+				showMessage("\n" + message);
 		} while (true);
 	}
 
@@ -177,7 +187,7 @@ public class Gui extends JFrame {
 			}
 		});
 	}
-
+	
 	private void ableToType(final Boolean TOF) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
@@ -187,7 +197,7 @@ public class Gui extends JFrame {
 	}
 
 	private void close() {
-		showMessage("\nClsoing streams and sockets. DISCONNECTED");
+		showMessage("\nClsoing streams and sockets. \nDISCONNECTED");
 		ableToType(false);
 		try {
 			connection.close();
