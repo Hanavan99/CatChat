@@ -13,21 +13,37 @@ import java.io.Serializable;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-//passed filename, byteArray of contents, stroe byteArray
-// intenal methods to write file to path
-//private read file
-//
-//client side they need WriteToFiel metdo given string
+/**
+ * Provides a transportation method for physical files. Works with any file
+ * type. Max. size of 2GB.
+ * 
+ * @author Hanavan Kuhn
+ *
+ */
 public class SerializableFile implements Serializable {
+
+	/**
+	 * Leave this, dont delete
+	 */
+	private static final long serialVersionUID = 5224336157061489239L;
 
 	private String fileName;
 	private byte[] byteArray;
 
+	/**
+	 * Creates a new {@code SerializableFile} object with the specified file, and
+	 * then loads it into memory.
+	 * 
+	 * @param inFile
+	 *            the path to the file
+	 * @throws FileNotFoundException
+	 *             if the file could not be found
+	 * @throws IOException
+	 *             if there was an error reading the file
+	 */
 	public SerializableFile(File inFile) throws FileNotFoundException, IOException {
 		fileName = inFile.getName();
 		InputStream inStream = new FileInputStream(inFile);
-		// ObjectInputStream s = new ObjectInputStream(inStream);
-		// System.out.println(inFile.getTotalSpace());
 		int size = (int) inFile.length();
 		System.out.println("File size is " + size + "B");
 		byteArray = new byte[size];
@@ -36,6 +52,17 @@ public class SerializableFile implements Serializable {
 
 	}
 
+	/**
+	 * Saves the file to disk, and uses the specified {@code JFrame} to properly
+	 * display a dialog box if the file already exists.
+	 * 
+	 * @param parent
+	 *            the parent frame
+	 * @throws FileNotFoundException
+	 *             if the file could not be found
+	 * @throws IOException
+	 *             if there was an error writing the file
+	 */
 	public void saveFile(JFrame parent) throws FileNotFoundException, IOException {
 		File inFile = new File(fileName);
 		OutputStream outStream = new FileOutputStream(inFile);

@@ -6,7 +6,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -15,25 +17,43 @@ import java.util.Map.Entry;
 
 import catchat.client.SerializableFile;
 
-//import catchat.client.SerializableFile;
-
+/**
+ * The {@code Server} class manages a chat server that sends messages back and
+ * forth, and allows for file upload and download.
+ * 
+ * @author Hanavan Kuhn
+ *
+ */
 public class Server {
 
-	private static final String FILE_PATH = "./files/";
+	private File fileDir = new File("files/");
 
 	private ServerSocket server;
-	private Map<String, String> messages = new HashMap<String, String>();
+	private Map<Long, String> messages = new HashMap<Long, String>();
 	private List<Client> clients = new ArrayList<Client>();
-	private Map<String, String> messageQueue = new HashMap<String, String>();
+	private Map<Long, String> messageQueue = new HashMap<Long, String>();
+	private Long messageID = 0L;
 	boolean running = false;
 	Thread serverThread;
 	Thread chatThread;
 
-	public Server(String address, int port) throws IOException {
-		//server = new ServerSocket();
-		server = new ServerSocket(port);
-		//server.bind(new InetSocketAddress(address, port));
 
+	/**
+	 * Creates a new server with the specified bind address, port, and
+	 * 
+	 * @param address
+	 *            the address for the server to bind to
+	 * @param port
+	 *            the port to bind to
+	 * @param fileDir
+	 *            the root directory for users to store files in
+	 * @throws IOException
+	 *             if the server cannot be created
+	 */
+	public Server(String address, int port, File fileDir) throws IOException {
+		server = new ServerSocket(port);
+		this.fileDir = fileDir;
+		fileDir.mkdirs();
 		serverThread = new Thread(() -> {
 			try {
 				while (running) {
@@ -59,18 +79,13 @@ public class Server {
 				try {
 					Thread.sleep(Long.MAX_VALUE);
 				} catch (InterruptedException e) {
-					// System.out.println("Thread interrupted");
-					Iterator<Entry<String, String>> itr = messageQueue.entrySet().iterator();
+
+					Iterator<Entry<Long, String>> itr = messageQueue.entrySet().iterator();
 					while (itr.hasNext()) {
-						Entry<String, String> entry = itr.next();
-						for (Client c : clients) {
-							try {
-								// System.out.println("Sending message to " + c.getUsername());
-								c.sendRaw(entry.getKey() + ": " + entry.getValue());
-							} catch (Exception ex) {
-								System.out.println("Failed to send message to client");
-							}
-						}
+
+						Entry<Long, String> entry = itr.next();
+						sendMessage(entry.getValue());
+						messages.put(entry.getKey(), entry.getValue());
 					}
 					messageQueue.clear();
 				}
@@ -79,29 +94,67 @@ public class Server {
 		});
 	}
 
+	/**
+	 * Starts the server.
+	 */
 	public void start() {
 		running = true;
 		serverThread.start();
 		chatThread.start();
 	}
 
+	/**
+	 * Handles a connection to the server. This method covers the entire lifecycle
+	 * of the client's connection.
+	 * 
+	 * @param client
+	 *            The client that connected
+	 */
 	private void handleClient(Socket client) {
 		try {
 			ObjectInputStream oin = new ObjectInputStream(client.getInputStream());
 			ObjectOutputStream oout = new ObjectOutputStream(client.getOutputStream());
 			Client c = new Client(oin, oout, null);
 			clients.add(c);
+			for (String message : messages.values()) {
+				c.putString(message);
+			}
 			while (c.connected()) {
-				String line = c.getMessage();
+				String line = c.getString();
 				switch (line) {
 				case "message":
-					// System.out.println("Recieved message from " + c.getUsername() + ": " +
-					// c.getMessage());
-					messageQueue.put(c.getUsername(), c.getMessage());
-					chatThread.interrupt();
+
+					String message = c.getString();
+					String[] args = message.split(" ", 2);
+					switch (args[0]) {
+					case "/download":
+						if (args.length > 1) {
+							File f = new File(fileDir, args[1]);
+							System.out.println("Client requested file " + f.getAbsolutePath());
+							if (f.exists()) {
+								c.writeFile(new SerializableFile(f));
+							} else {
+								c.putString("File does not exist. List the files using /listfiles.");
+							}
+						}
+						break;
+					case "/handle":
+						if (args.length > 1) {
+							c.setUsername(args[1]);
+							c.putString("Handle changed to '" + args[1] + "'");
+						}
+						break;
+					case "/help":
+						c.sendMessage("Commands are: /download [filename], /handle [username], /help");
+						break;
+					default:
+						messageQueue.put(createMessageID(), "[" + new SimpleDateFormat("hh:mm:ss").format(Calendar.getInstance().getTime()) + "] " + c.getUsername() + ": " + message);
+						chatThread.interrupt();
+						break;
+					}
 					break;
 				case "getfile":
-					c.sendFile(new SerializableFile(new File(c.getMessage())));
+					c.sendFile(new SerializableFile(new File(c.getString())));
 					break;
 				case "putfile":
 					SerializableFile file = c.getFile();
@@ -120,6 +173,60 @@ public class Server {
 		}
 	}
 
+	/**
+	 * Creates a message ID that is thread-safe.
+	 * 
+	 * @return the message ID
+	 */
+	public long createMessageID() {
+		long id;
+		synchronized (messageID) {
+			id = messageID;
+			messageID++;
+		}
+		return id;
+	}
+
+	/**
+	 * Kicks a client with the specified username by sending them a message and then
+	 * closing their connection.
+	 * 
+	 * @param username
+	 *            the client's username to kick
+	 */
+	public void kickClient(String username) {
+		for (Client c : clients) {
+			if (c.getUsername().equals(username)) {
+				try {
+					c.sendMessage("You have been kicked from the server.");
+					c.close();
+				} catch (IOException e) {
+					System.out.println("Failed to kick client: " + e.getMessage());
+				}
+			}
+		}
+	}
+
+	/**
+	 * Sends a raw string message to every client, including the server.
+	 * 
+	 * @param message
+	 *            the message to send
+	 */
+	public void sendMessage(String message) {
+		System.out.println(message);
+		for (Client c : clients) {
+			try {
+				c.putString(message);
+			} catch (Exception ex) {
+				System.out.println("Failed to send message to client");
+			}
+		}
+	}
+
+	/**
+	 * Stops the server.
+	 */
 	public void stop() {
 		running = false;
 		try {
@@ -131,19 +238,29 @@ public class Server {
 		chatThread.interrupt();
 	}
 
+	/**
+	 * Prints all of the clients to the console.
+	 */
 	public void printClients() {
 		for (Client c : clients) {
 			System.out.println(c.getUsername());
 		}
 	}
-	
+
+
+	/**
+	 * Gets the list of downloadable files from the server.
+	 * 
+	 * @return the list of files
+	 */
 	public String[] getFileNames() {
-		File[] files = new File(FILE_PATH).listFiles();
-		String[] fileNames = new String[files.length];
-		for (int i = 0; i < fileNames.length; i++) {
-			fileNames[i] = files[i].getName();
+		File[] files = fileDir.listFiles();
+		List<String> fileNames = new ArrayList<String>();
+		for (int i = 0; i < files.length; i++) {
+			if (!files[i].isDirectory())
+				fileNames.add(files[i].getName());
 		}
-		return fileNames;
+		return fileNames.toArray(new String[0]);
 	}
 
 }

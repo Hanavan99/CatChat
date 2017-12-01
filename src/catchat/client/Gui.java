@@ -125,7 +125,7 @@ public class Gui extends JFrame {
 	}
 
 	private void connectToServer() throws IOException {
-		connection = new Socket(ip, 12347); /* "10.132.22.105" *//* "104.236.244.255" *//*"localhost"*/
+		connection = new Socket(ip, 12345); /* "10.132.22.105" *//* "104.236.244.255" *//* "localhost" */
 	}
 
 	private void setUpStreams() throws IOException {
