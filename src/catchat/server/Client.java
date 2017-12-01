@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 
 import catchat.client.SerializableFile;
 import catchat.core.Command;
+import catchat.core.Directory;
 import catchat.core.NetworkHandler;
 
 /**
@@ -129,93 +130,42 @@ public class Client {
 	 * 
 	 * @param message
 	 *            the message to send
-	 * @throws IOException
-	 *             if the message failed to send
 	 */
-	public void sendMessage(String message) throws IOException {
-		putString("message");
-		putString(message);
+	public void sendMessage(String message) {
+		writeObject(message);
+	}
+
+	public void sendDirectoryList(Directory directory) {
+		writeObject(directory);
 	}
 
 	/**
-	 * Sends the list of file names to the client. Only used by the server.
+	 * Writes an object to the current {@code ObjectOutputStream}.
 	 * 
-	 * @param files
-	 *            the list of files
-	 * @throws IOException
-	 *             if the list of files failed to send
+	 * @param o
+	 *            the object
 	 */
-	public void sendFileNames(String[] files) throws IOException {
-		oout.writeObject(files);
+	private void writeObject(Object o) {
+		try {
+			oout.writeObject(o);
+		} catch (IOException e) {
+			System.out.println("Error writing object " + o.getClass());
+		}
 	}
-
-	// /**
-	// * Gets the file names sent by the server.
-	// *
-	// * @return the file names
-	// * @throws IOException
-	// * if reading the file names failed
-	// */
-	// public String[] getFileNames() throws IOException {
-	// try {
-	// putString("listfiles");
-	// String[] files = (String[]) oin.readObject();
-	// System.out.println(files.length);
-	// return files;
-	// } catch (ClassNotFoundException e) {
-	// e.printStackTrace();
-	// return null;
-	// }
-	// }
 
 	/**
 	 * Writes a file to the current {@code ObjectOutputStream}.
 	 * 
 	 * @param file
 	 *            the file
-	 * @throws IOException
-	 *             if writing the file fails
-	 */
-	public void writeFile(SerializableFile file) throws IOException {
-		try {
-			oout.writeObject(file);
-		} catch (Exception e) {
-			System.out.println("Failed to write file");
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Sends a file to the server. Only used by the client.
-	 * 
-	 * @param file
-	 *            the file
 	 */
 	public void sendFile(SerializableFile file) {
-		try {
-			putString("putfile");
-			oout.writeObject(file);
-		} catch (Exception e) {
-			System.out.println("Failed to send file");
-			e.printStackTrace();
-		}
+		writeObject(file);
 	}
 
-	// /**
-	// * Gets the last sent file. Only used by the client.
-	// *
-	// * @return the file
-	// * @throws IOException
-	// * if reading the file fails
-	// */
-	// public SerializableFile getFile() throws IOException {
-	// try {
-	// return (SerializableFile) oin.readObject();
-	// } catch (ClassNotFoundException e) {
-	// e.printStackTrace();
-	// return null;
-	// }
-	// }
+	public void sendCommand(Command command) {
+		writeObject(command);
+	}
 
 	/**
 	 * Polls the server for objects. If block is {@code true}, this method will

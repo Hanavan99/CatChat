@@ -24,6 +24,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import catchat.core.Directory;
 import catchat.core.NetworkHandler;
 import catchat.server.Client;
 
@@ -42,6 +43,7 @@ public class Gui extends JFrame {
 	private ObjectOutputStream output;
 	private ObjectInputStream input;
 	private Client client;
+	private Directory fileDir;
 
 	public Gui() {
 		font1 = new Font("SansSerif", Font.BOLD, 15);
@@ -171,6 +173,11 @@ public class Gui extends JFrame {
 				showMessage("\n" + message);
 			}
 
+			@Override
+			public void directoryListRecieved(Directory directory) {
+				fileDir = directory;
+			}
+
 		});
 	}
 
@@ -182,11 +189,8 @@ public class Gui extends JFrame {
 	}
 
 	private void sendMessage(String message) {
-		try {
-			client.sendMessage(message);
-		} catch (IOException ioException) {
-			chatWindow.append("\nMessage could not be sent!");
-		}
+		client.sendMessage(message);
+
 	}
 
 	public void showMessage(final String TEXT) {
@@ -206,7 +210,7 @@ public class Gui extends JFrame {
 	}
 
 	private void close() {
-		showMessage("\nClsoing streams and sockets. \nDISCONNECTED");
+		showMessage("\nClosing streams and sockets. \nDISCONNECTED");
 		ableToType(false);
 		try {
 			connection.close();
