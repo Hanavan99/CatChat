@@ -187,7 +187,7 @@ public class Gui extends JFrame {
 	}
 
 	private void close() {
-		showMessage("\nClsoing streams and sockets. DISCONNECTED");
+		showMessage("\nClosing streams and sockets. DISCONNECTED");
 		ableToType(false);
 		try {
 			connection.close();
