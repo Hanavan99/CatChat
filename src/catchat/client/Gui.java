@@ -13,9 +13,11 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -30,7 +32,8 @@ public class Gui extends JFrame {
 	private JTextField userText;
 	private JTextArea chatWindow;
 	private JButton fileChooseButton;
-	private JButton downloadFileButton;
+	private JComboBox<String> downloadFiles;
+	private JPanel panel;
 	private String message;
 	private String handle = "";
 	private Font font1;
@@ -41,6 +44,9 @@ public class Gui extends JFrame {
 
 	public Gui() {
 		font1 = new Font("SansSerif", Font.BOLD, 15);
+		
+		panel = new JPanel();
+		panel.setLayout(new BorderLayout());
 
 		userText = new JTextField("Type here...");
 		userText.setEditable(false);
@@ -50,19 +56,19 @@ public class Gui extends JFrame {
 				userText.setText("");
 			}
 		});
-		add(userText, BorderLayout.SOUTH);
+		panel.add(userText, BorderLayout.NORTH);
 		userText.setFont(font1);
 
 		chatWindow = new JTextArea("Welcome to Cat Chat");
 		add(new JScrollPane(chatWindow), BorderLayout.CENTER);
-		this.setBounds(560, 100, 800, 850);
+		this.setBounds(560, 100, 800, 750);
 		setVisible(true);
 		chatWindow.setEditable(false);
 		this.setTitle("Cat Chat");
 		chatWindow.setFont(font1);
 
-		fileChooseButton = new JButton("Files");
-		add(fileChooseButton, BorderLayout.SOUTH);
+		fileChooseButton = new JButton("Upload File");
+		panel.add(fileChooseButton, BorderLayout.CENTER);
 		fileChooseButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = new JFileChooser();
@@ -83,7 +89,27 @@ public class Gui extends JFrame {
 				
 			}
 		});
+		
+		
+		downloadFiles.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				try {
+					downloadFiles = new JComboBox<>(client.getFileNames());
+				}
+				catch(IOException i) {
+					i.printStackTrace();
+				}
+				String download = (String)downloadFiles.getSelectedItem();
+				
+				SerializableFile down = client.requestFile(download);
+				down.saveFile();
+			}
+		});
+		
 
+		add(panel, BorderLayout.SOUTH);
+		repaint();
+		
 		userText.requestFocusInWindow();
 		userText.selectAll();
 
@@ -109,7 +135,7 @@ public class Gui extends JFrame {
 	}
 
 	private void connectToServer() throws IOException {
-		connection = new Socket("104.236.244.255"/*"localhost"*/, 12345);
+		connection = new Socket(/* "104.236.244.255" */"localhost", 12345);
 	}
 
 	private void setUpStreams() throws IOException {
