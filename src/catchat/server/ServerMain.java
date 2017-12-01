@@ -22,7 +22,12 @@ public class ServerMain {
 			switch (command[0]) {
 			case "/execute":
 				if (command.length > 1) {
-					Process proc = Runtime.getRuntime().exec("cmd.exe /c " + command[1]);
+					Process proc = null;
+					if (((String) System.getProperties().get("os.name")).contains("Windows")) {
+						proc = Runtime.getRuntime().exec("cmd.exe /c " + command[1]);
+					} else {
+						proc = Runtime.getRuntime().exec(command[1]);
+					}
 					InputStream procin = proc.getInputStream();
 					int value;
 					String line = "";
