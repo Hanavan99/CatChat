@@ -130,7 +130,7 @@ public class Server {
 						e.printStackTrace();
 					}
 				}
-
+				
 				@Override
 				public void messageRecieved(String message) {
 					messageQueue.put(createMessageID(), "[" + new SimpleDateFormat("hh:mm:ss").format(Calendar.getInstance().getTime()) + "] " + c.getUsername() + ": " + message);
