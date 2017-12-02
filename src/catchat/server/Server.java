@@ -151,6 +151,10 @@ public class Server {
 							client.sendMessage("File not found.");
 						}
 						break;
+					case "sethandle":
+						client.setUsername(cmd[1]);
+						client.sendMessage("Successfully changed handle to '" + cmd[1] + "'");
+						break;
 					case "listfiles":
 						client.sendDirectoryList(getFiles());
 						break;
