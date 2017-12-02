@@ -7,7 +7,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -131,7 +133,7 @@ public class Server {
 
 				@Override
 				public void messageRecieved(String message) {
-					messageQueue.put(createMessageID(), message);
+					messageQueue.put(createMessageID(), "[" + new SimpleDateFormat("hh:mm:ss").format(Calendar.getInstance().getTime()) + "] " + c.getUsername() + ": " + message);
 					chatThread.interrupt();
 				}
 
@@ -141,9 +143,12 @@ public class Server {
 					switch (cmd[0]) {
 					case "getfile":
 						try {
-							client.sendFile(new SerializableFile(new File(fileDir, cmd[1])));
+							File f = new File(fileDir, cmd[1]);
+							client.sendFile(new SerializableFile(f));
+							client.sendMessage("Downloaded file " + f.getName());
 						} catch (IOException e) {
 							System.out.println("Couldn't load file");
+							client.sendMessage("File not found.");
 						}
 						break;
 					case "listfiles":
@@ -160,54 +165,6 @@ public class Server {
 			}
 			while (c.connected()) {
 				c.pollEvents(true);
-				// String line = c.getString();
-				// switch (line) {
-				// case "message":
-				//
-				// String message = c.getString();
-				// String[] args = message.split(" ", 2);
-				// switch (args[0]) {
-				// case "/download":
-				// if (args.length > 1) {
-				// File f = new File(fileDir, args[1]);
-				// System.out.println("Client requested file " + f.getAbsolutePath());
-				// if (f.exists()) {
-				// c.writeFile(new SerializableFile(f));
-				// } else {
-				// c.putString("File does not exist. List the files using /listfiles.");
-				// }
-				// }
-				// break;
-				// case "/handle":
-				// if (args.length > 1) {
-				// c.setUsername(args[1]);
-				// c.putString("Handle changed to '" + args[1] + "'");
-				// }
-				// break;
-				// case "/help":
-				// c.sendMessage("Commands are: /download [filename], /handle [username],
-				// /help");
-				// break;
-				// default:
-				// messageQueue.put(createMessageID(), "[" + new
-				// SimpleDateFormat("hh:mm:ss").format(Calendar.getInstance().getTime()) + "] "
-				// + c.getUsername() + ": " + message);
-				// chatThread.interrupt();
-				// break;
-				// }
-				// break;
-				// case "getfile":
-				// c.sendFile(new SerializableFile(new File(c.getString())));
-				// break;
-				// case "putfile":
-				// SerializableFile file = c.getFile();
-				// file.saveFile(null);
-				// c.sendMessage("File uploaded.");
-				// break;
-				// case "listfiles":
-				// c.sendFileNames(getFileNames());
-				// break;
-				// }
 			}
 			clients.remove(c);
 		} catch (IOException e) {

@@ -191,8 +191,10 @@ public class Client {
 					handler.fileRecieved((SerializableFile) o);
 				} else if (o instanceof Command) {
 					handler.commandRecieved((Command) o);
+				} else if (o instanceof Directory) {
+					handler.directoryListRecieved((Directory) o);
 				} else {
-					System.out.println("Server recieved a hot potato, throwing it to the next person");
+					System.out.println("Server recieved a hot potato, throwing it to the next person " + o.getClass());
 				}
 			}
 		} catch (ClassNotFoundException e) {

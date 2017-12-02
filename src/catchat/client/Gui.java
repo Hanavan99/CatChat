@@ -24,6 +24,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import catchat.core.Command;
 import catchat.core.Directory;
 import catchat.core.NetworkHandler;
 import catchat.server.Client;
@@ -43,7 +44,6 @@ public class Gui extends JFrame {
 	private ObjectOutputStream output;
 	private ObjectInputStream input;
 	private Client client;
-	private Directory fileDir;
 
 	public Gui() {
 		font1 = new Font("SansSerif", Font.BOLD, 15);
@@ -71,7 +71,18 @@ public class Gui extends JFrame {
 		userText.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				if (!event.getActionCommand().equals("")) {
-					sendMessage(event.getActionCommand());
+					String[] cmd = userText.getText().split(" ", 2);
+					switch (cmd[0]) {
+					case "/download":
+						client.sendCommand(new Command("getfile " + cmd[1]));
+						break;
+					case "/listfiles":
+						client.sendCommand(new Command("listfiles"));
+						break;
+					default:
+						sendMessage(event.getActionCommand());
+						break;
+					}
 					userText.setText("");
 				}
 			}
@@ -176,7 +187,10 @@ public class Gui extends JFrame {
 
 			@Override
 			public void directoryListRecieved(Directory directory) {
-				fileDir = directory;
+				showMessage("\nFiles on server:");
+				for (String file : directory.getFileNames()) {
+					showMessage("\n" + file);
+				}
 			}
 
 		});

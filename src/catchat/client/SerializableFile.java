@@ -67,25 +67,25 @@ public class SerializableFile implements Serializable {
 	 */
 	public void saveFile(JFrame parent, File path) throws FileNotFoundException, IOException {
 		File inFile = new File(path, fileName);
-		OutputStream outStream = new FileOutputStream(inFile);
-		System.out.println("Saving file to " + inFile.getAbsolutePath());
-		if (inFile.exists()) {
-			// System.out.println("It seems that the file " + inFile.toString() + "exists.
-			// Do you want to overwrite? Y or N");
+		boolean write = false;
+		if (inFile.exists() && parent != null) {
 			try {
 				int result = JOptionPane.showConfirmDialog(parent, "It seems that the file " + inFile.toString() + "exists. Do you want to overwrite?");
 				if (result == JOptionPane.YES_OPTION) {
-					// PrintWriter pw = new PrintWriter(inFile);
-					outStream.write(byteArray);
+					write = true;
 				}
 			} catch (HeadlessException e) {
 				System.out.println("Program is running headless, overwriting file");
-				outStream.write(byteArray);
+				write = true;
 			}
 		} else {
-			outStream.write(byteArray);
-
+			write = true;
 		}
-		outStream.close();
+		if (write) {
+			OutputStream outStream = new FileOutputStream(inFile);
+			System.out.println("Client uploaded file; saving to " + inFile.getAbsolutePath());
+			outStream.write(byteArray);
+			outStream.close();
+		}
 	}
 }
