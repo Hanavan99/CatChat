@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import catchat.client.SerializableFile;
+import catchat.core.Command;
+import catchat.core.Directory;
 import catchat.core.NetworkHandler;
 
 /**
@@ -113,7 +115,8 @@ public class Server {
 		try {
 			ObjectInputStream oin = new ObjectInputStream(client.getInputStream());
 			ObjectOutputStream oout = new ObjectOutputStream(client.getOutputStream());
-			Client c = new Client(oin, oout, null, new NetworkHandler() {
+			Client c = new Client(oin, oout, null);
+			NetworkHandler handler = new NetworkHandler(c) {
 
 				@Override
 				public void fileRecieved(SerializableFile file) {
@@ -132,7 +135,25 @@ public class Server {
 					chatThread.interrupt();
 				}
 
-			});
+				@Override
+				public void commandRecieved(Command command) {
+					String[] cmd = command.getCommand().split(" ", 2);
+					switch (cmd[0]) {
+					case "getfile":
+						try {
+							client.sendFile(new SerializableFile(new File(fileDir, cmd[1])));
+						} catch (IOException e) {
+							System.out.println("Couldn't load file");
+						}
+						break;
+					case "listfiles":
+						client.sendDirectoryList(getFiles());
+						break;
+					}
+				}
+
+			};
+			c.setNetworkHandler(handler);
 			clients.add(c);
 			for (String message : messages.values()) {
 				c.putString(message);
@@ -274,14 +295,14 @@ public class Server {
 	 * 
 	 * @return the list of files
 	 */
-	public String[] getFileNames() {
+	public Directory getFiles() {
 		File[] files = fileDir.listFiles();
 		List<String> fileNames = new ArrayList<String>();
 		for (int i = 0; i < files.length; i++) {
 			if (!files[i].isDirectory())
 				fileNames.add(files[i].getName());
 		}
-		return fileNames.toArray(new String[0]);
+		return new Directory(fileNames);
 	}
 
 }

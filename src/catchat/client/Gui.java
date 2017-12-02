@@ -152,7 +152,8 @@ public class Gui extends JFrame {
 		output = new ObjectOutputStream(connection.getOutputStream());
 		output.flush();
 		input = new ObjectInputStream(connection.getInputStream());
-		client = new Client(input, output, handle, new NetworkHandler() {
+		client = new Client(input, output, handle);
+		client.setNetworkHandler(new NetworkHandler(client) {
 
 			@Override
 			public void fileRecieved(SerializableFile file) {

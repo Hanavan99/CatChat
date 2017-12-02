@@ -71,7 +71,7 @@ public class ServerMain {
 					break;
 				case "/listfiles":
 					System.out.println("Files: ");
-					for (String file : s.getFileNames()) {
+					for (String file : s.getFiles().getFileNames()) {
 						System.out.println(file);
 					}
 					break;

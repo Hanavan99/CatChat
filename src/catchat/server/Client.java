@@ -34,22 +34,23 @@ public class Client {
 	 * @param user
 	 *            the username; if on creation the username is unknown, specify
 	 *            {@code null}
-	 * @param handler
-	 *            the network handler that recieves events
 	 * @throws IOException
 	 *             if there is a problem sending the username to the server, if
 	 *             applicable
 	 */
-	public Client(ObjectInputStream oin, ObjectOutputStream oout, String user, NetworkHandler handler) throws IOException {
+	public Client(ObjectInputStream oin, ObjectOutputStream oout, String user) throws IOException {
 		this.oin = oin;
 		this.oout = oout;
-		this.handler = handler;
 		if (user != null) {
 			username = user;
 			putString(user);
 		} else {
 			username = getString();
 		}
+	}
+
+	public void setNetworkHandler(NetworkHandler handler) {
+		this.handler = handler;
 	}
 
 	/**
