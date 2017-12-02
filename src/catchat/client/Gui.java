@@ -37,8 +37,8 @@ public class Gui extends JFrame {
 	private JTextArea chatWindow;
 	private JButton fileChooseButton;
 	private JPanel panel;
-	private String handle = "";
-	private String ip = "";
+	private String handle;
+	private String ip;
 	private Font font1;
 	private Socket connection;
 	private ObjectOutputStream output;
@@ -129,13 +129,25 @@ public class Gui extends JFrame {
 
 		userText.requestFocusInWindow();
 		userText.selectAll();
-
+		
+		ip = "";
+		boolean flag;
 		do {
-			ip = JOptionPane.showInputDialog("104.236.244.255 10.132.22.105 localhost Enter the IP: ");
-		} while (ip.equals(""));
-
+			flag = true;
+			ip = JOptionPane.showInputDialog("Enter \"104.236.244.255\" for Ubuntu sever or \"localhost\" to connect locally");
+			if(ip == null)
+				System.exit(0);
+			else if(ip.equals("104.236.244.255"))
+				flag = false;
+			else if(ip.equals("localhost"))
+				flag = false;
+		} while (flag);
+		
+		handle = "";
 		do {
 			handle = JOptionPane.showInputDialog("Enter your desired handle: ");
+			if(handle == null)
+				handle = "Handle not set";
 		} while (handle.equals(""));
 
 		this.setBounds(560, 100, 800, 750);
@@ -181,6 +193,9 @@ public class Gui extends JFrame {
 						System.out.println("Error saving file");
 					}
 				}
+				else if(choice == JFileChooser.CANCEL_OPTION) {
+					showMessage("\nYou pressed cancel.");
+				}
 			}
 
 			@Override
@@ -223,6 +238,7 @@ public class Gui extends JFrame {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				userText.setEditable(TOF);
+				fileChooseButton.setEnabled(TOF);
 			}
 		});
 	}
