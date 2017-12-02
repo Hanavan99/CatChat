@@ -79,6 +79,9 @@ public class Gui extends JFrame {
 					case "/listfiles":
 						client.sendCommand(new Command("listfiles"));
 						break;
+					case "/handle":
+						client.sendCommand(new Command("sethandle " + cmd[1]));
+						break;
 					default:
 						sendMessage(event.getActionCommand());
 						break;
