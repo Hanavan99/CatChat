@@ -94,6 +94,9 @@ public class Gui extends JFrame {
 					case "/handle":
 						client.sendCommand(new Command("sethandle " + cmd[1]));
 						break;
+					case "/help":
+						showMessage("\nCommands: /listfiles, /download [file], /handle [new handle]");
+						break;
 					default:
 						sendMessage(event.getActionCommand());
 						break;
