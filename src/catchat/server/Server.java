@@ -123,6 +123,7 @@ public class Server {
 				public void fileRecieved(SerializableFile file) {
 					try {
 						file.saveFile(null, fileDir);
+						client.sendMessage("File successfully uploaded");
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 					} catch (IOException e) {
