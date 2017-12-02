@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -58,22 +59,20 @@ public class Server {
 		this.fileDir = fileDir;
 		fileDir.mkdirs();
 		serverThread = new Thread(() -> {
-			try {
-				while (running) {
-					try {
-						Socket client = server.accept();
-						System.out.println("Client connected");
-						Thread clientThread = new Thread(() -> handleClient(client));
-						clientThread.start();
-					} catch (IOException e) {
-						if (running) {
-							System.out.println("Something went wrong with a client, disconnecting");
-						}
+			// try {
+			while (running) {
+				try {
+					Socket client = server.accept();
+					System.out.println("Client connected");
+					Thread clientThread = new Thread(() -> handleClient(client));
+					clientThread.start();
+				} catch (SocketException e) {
+					System.out.println("Server exited");
+				} catch (IOException e) {
+					if (running) {
+						System.out.println("Something went wrong with a client, disconnecting");
 					}
-					Thread.sleep(0);
 				}
-			} catch (InterruptedException e) {
-				System.out.println("Server thread exited");
 			}
 		});
 

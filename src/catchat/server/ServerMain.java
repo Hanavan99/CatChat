@@ -31,7 +31,7 @@ public class ServerMain {
 			System.out.println("Server Started. Type '/help' for help.");
 			String[] command;
 			boolean running = true;
-			while (in.hasNext() && running) {
+			while (running && in.hasNext()) {
 				command = in.nextLine().split(" ", 2);
 				switch (command[0]) {
 				case "/execute":
@@ -60,7 +60,7 @@ public class ServerMain {
 				case "/quit":
 					System.out.println("Closing server");
 					running = false;
-					return;
+					break;
 				case "/kick":
 					if (command.length > 1)
 						s.kickClient(command[1]);
@@ -87,7 +87,7 @@ public class ServerMain {
 					break;
 				}
 			}
-			s.start();
+			s.stop();
 			in.close();
 		} catch (Exception e) {
 			System.out.println("Something went wrong on the server: " + e.getMessage());
