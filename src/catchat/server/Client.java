@@ -13,6 +13,7 @@ import catchat.core.NetworkHandler;
  * Represents a client on both the client and the server.
  * 
  * @author Hanavan Kuhn
+ * @author Chuck Swisher
  *
  */
 public class Client {
